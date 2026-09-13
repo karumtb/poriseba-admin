@@ -1,0 +1,730 @@
+@media (min-width: 1200px){
+   .container {
+		max-width: 1250px;
+    }
+
+}
+
+@media only screen and (min-width: 1600px) {
+	.container {
+		max-width: 1440px;
+    }
+}
+
+@media only screen and (max-width: 1199.5px) {
+	.accordion-button{
+		font-size: 16px !important;
+	}
+	.accordion-button{
+		padding: 14px 15px !important;
+	}
+	.workbox::after{
+		display: none;
+	}
+	h1, h2, .heading{
+		font-size: 36px;
+		line-height: 1.2;
+	}
+	.brand-logo{
+		order: 1;
+	}
+	.stellarnav.mobile{
+		order: 3;
+	}
+	.menumain .btnstyle{
+		order: 2;
+		margin: 0 10px;
+	}
+	.menu-toggle{
+		font-size:0;
+	}
+	.stellarnav.mobile{
+		text-align: right;
+	}
+	.stellarnav .menu-toggle span.bars{
+		margin-right: 0 !important;
+	}
+	.stellarnav .menu-toggle span.bars span {
+		display: block;
+		width: 29px;
+		height: 3px;
+		border-radius: 6px;
+		background: #000;
+		margin: 0 0 6px;
+		top: -3px;
+		position: relative;
+	}
+
+	.stellarnav.mobile ul{
+		background: #fefafc;
+		border-left: solid 1px #f1dde7;
+	}
+	.stellarnav a.dd-toggle .icon-plus:after, .stellarnav a.dd-toggle .icon-plus:before{
+		border-bottom: solid 3px #fff;
+	}
+	.stellarnav a{
+		color: #fff;
+	}
+	a.close-menu.full{
+		font-size: 0;
+	}
+	.stellarnav .icon-close:after{
+		border-bottom: solid 2px #000;
+		width: 16px;
+	}
+	.stellarnav .icon-close:before{
+		border-bottom: solid 2px #000;
+		width: 16px;
+	}
+	.menu_nav .stellarnav li li a{
+		padding: 15px;
+	}
+	.stellarnav li li a.dd-toggle{
+		background-color: #a4243b;
+		color: #FFF9E7;
+		height: 46px;
+	}
+	.stellarnav li li a.dd-toggle .icon-plus{
+		top: -2px;
+	}
+	.menu_nav .stellarnav li li li a{
+		background-color: #f2faff;
+	}
+
+
+	.banner_main .carousel-caption h1{
+		font-size: 40px;
+		line-height: 1.2;
+	}
+	.banner_main .carousel-caption p{
+		font-size: 22px;
+		line-height: 1.3;
+	}
+
+	
+
+	.drbox figure{
+		width: 80px;
+		height: 80px;
+	}
+	.drbox h3{
+		font-size: 20px;
+	}
+	.eventtitle h2{
+		font-size: 36px;
+	}
+	.whoweare h2, .gallerydiv h2, .newsandevent h2{
+		font-size: 28px;
+	}
+	.gallery a:nth-child(2){
+		    grid-column: unset;
+	}
+
+	.drmaindiv {
+		padding: 30px 20px;
+	}
+	.drbox figure {
+		width: 70px;
+		height: 70px;
+	}
+	.drbox figcaption {
+		padding-left: 12px;
+	}
+	.drbox h3 span {
+		font-size: 15px;
+	}
+	.ovbox p {
+		font-size: 16px;
+	}
+	.title-track p {
+		font-size: 20px;
+	}
+
+	/* About Page  */
+	.excellencebox h3 {
+		font-size: 28px;
+	}
+	.tabstyle .nav-pills .nav-link {
+		padding: 12px 24px;
+		font-size: 16px;
+	}
+	.page-template-about-us .counter h3{
+		font-size: 24px;
+	}
+
+	/* Culture Page  */
+	.readytojoin h3 {
+		font-size: 36px;
+	}
+
+.stellarnav.mobile > ul > li > a.btnenquire{
+	        padding: 12px;
+        margin: 10px 10px;
+}
+.stellarnav.mobile > ul > li > a{
+	border: 0 !important;
+ padding: 12px 15px;
+}
+
+
+}
+
+@media only screen and (max-width: 991.5px) {
+	.btnstyle {
+		padding: 8px 24px;
+		font-size: 14px;
+	}
+	.stellarnav .menu-toggle {
+		padding: 0px 0 0 15px;
+	}
+	.ulinebtn {
+		font-size: 14px;
+	}
+	.bannerimg {
+		height: 540px;
+		position: relative;
+	}
+	.bannerimg::before{
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		background: #ffffff70;
+		  background: linear-gradient(90deg, rgb(255 255 255 / 86%) 0%, rgb(255 255 255 / 70%) 27%, rgb(255 255 255 / 51%) 100%);
+	}
+
+	
+	.servprv{
+		padding: 15px;
+	}
+
+
+	.bannerimg img{
+		height: 100%;
+		object-position: 85%;
+	}
+	.banner_main .carousel-caption h1 {
+		font-size: 32px;
+	}
+	.banner_main .carousel-caption p {
+		font-size: 20px;
+	}
+	.drbox figure {
+		width: 60px;
+		height: 60px;
+	}
+	.drbox h3 {
+		font-size: 22px;
+	}
+	.drbox h3 span {
+		font-size: 16px;
+	}
+	.drmaindiv {
+		padding: 20px 20px;
+	}
+	h1, h2, .heading {
+		font-size: 28px;
+	}
+	.form-card h2{
+		font-size: 18px;
+	}
+	.form-card .mb-3{
+		margin-bottom: 10px !important;
+	}
+	.form-card textarea.form-control{
+		height: 40px;
+	}
+	.eventbox ul li{
+		font-size: 12px;
+	}
+	li.pe-3{
+		padding-right: 5px !important;
+	}
+	li.ps-3{
+		padding-left: 5px !important;
+	}
+	.sectiongap {
+		padding: 30px 0;
+	}
+	.ovbox p {
+		font-size: 15px;
+	}
+	.scroll-content .item p {
+		font-size: 18px;
+	}
+	.icon-box {
+		width: 64px;
+		height: 64px;
+		padding: 10px;
+	}
+	.service-card h4 , .company-profile .service-card h4{
+		font-size: 22px;
+	}
+	.serviceboxfull h4{
+		font-size: 22px !important;
+	}
+	.service-card ul li {
+		margin-bottom: 12px;
+		font-size: 15px;
+	}
+	.newsbox {
+		padding: 20px;
+		border-radius: 14px;
+	}
+	.newsbox h4 {
+		font-size: 22px;
+		margin-bottom: 14px;
+	}
+	.title-track p , .company-profile .service-card p{
+		font-size: 16px;
+		line-height: 1.4;
+	}
+	.newsbox h5, .newsbox h5 p {
+		font-size: 15px;
+		line-height: 1.3;
+	}
+	.footer-logo {
+		max-width: 224px;
+	}
+	footer ul li a , .contactf p{
+		font-size: 15px;
+	}
+	
+	/* About Page  */
+	
+	.core-values .service-card p {
+		font-size: 15px;
+	}
+	.section.bottomdiv {
+		left: 60px;
+	}
+	.timelinebig.timeline .topdiv .column, .timeline .bottomdiv .column {
+		padding-left: 20px;
+		padding-right: 10px;
+	}
+	.timelinebig.timeline .column p {
+		font-size: 15px;
+	}
+	.excellencebox h3 {
+		font-size: 22px;
+		padding-left: 0;
+	}
+	.excellencebox h3 span {
+		margin-bottom: 8px;
+		width: 40px;
+		height: 40px;
+		line-height: 40px;
+		position: static;
+		display: block;
+	}
+
+	/* Contact Page  */
+	.form-control {
+		height: 40px;
+		padding: 6px 15px;
+		font-size: 14px;
+	}
+	.contact-form h2 , .contact-left h2{
+		font-size: 22px;
+	}
+	.banner_main.innerbanner .carousel-caption p {
+		font-size: 16px;
+	}
+
+	/* Strategy Page  */
+	.accordion-button {
+		font-size: 22px;
+		padding: 15px 15px !important;
+	}
+	.accordion-body h4 {
+		font-size: 20px !important;
+		font-weight: 700;
+		margin-bottom: 8px;
+	}
+	.accordion-body p {
+		font-size: 15px;
+	}
+	.accordion-arrow {
+		width: 12px;
+		height: 12px;
+	}
+
+	/* Culture Page  */
+	.divblermain h3, .readytojoin h3 {
+		font-size: 24px;
+		margin-bottom: 12px;
+	}
+	.divblermain p , .readytojoin p{
+		font-size: 16px;
+		line-height: 1.3;
+	}
+}
+
+
+@media only screen and (max-width: 767.5px) {
+	.servprv figcaption{
+		    font-size: 15px;
+
+	}
+	.innerbaner.bannerimg{
+		height: 400px;
+	}
+	.numbox{
+		width: 70px;
+		height: 70px;
+	}
+	.fimg{
+		display: none;
+	}
+	h1, h2, .heading {
+		font-size: 22px;
+		margin-bottom: 12px;
+	}
+	p{
+		font-size: 14px;
+		line-height: 1.3;
+	}
+	.btnstyle{
+		font-size: 14px;
+		padding: 6px 15px;
+	}
+	.owl-nav button {
+		width: 36px;
+		height: 36px;
+	}
+	.owl-nav button i {
+		font-size: 24px;
+	}
+	.brand-logo img {
+		width: 240px;
+	}
+	.stellarnav .menu-toggle span.bars span {
+		width: 24px;
+		height: 2px;
+		top: 0px;
+	}
+	.menumain {
+		padding: 12px 0;
+	}
+	.menumain .book-btn{
+		padding: 10px 16px;
+	}
+	
+
+
+	.banner_main .carousel-caption h1{
+		margin-bottom: 5px;
+		font-size: 26px;
+	}
+	.banner_main .carousel-caption p {
+		font-size: 16px;
+	}
+	.banner_main::after {
+		bottom: 0px;
+	}
+	section.dreem{
+		padding: 50px 0;
+		margin-top: 0;
+	}
+	.counter {
+		padding: 20px 0;
+	}
+	.border_light{
+		border-color: #426a9100 !important;
+	}
+	.drbox h3{
+		font-size: 18px;
+	}
+	.scroll-content .item p {
+		font-size: 15px;
+	}
+	.scroll-content .icon {
+		width: 36px;
+		height: 36px;
+	}
+	.ovbox p , .title-track p, .newsbox h5, .newsbox h5 p, .company-profile .service-card p, .footer-bottom p{
+		font-size: 14px;
+	}
+	.service-card {
+		padding: 20px;
+	}
+	.service-card h4, .company-profile .service-card h4 {
+		font-size: 18px;
+	}
+	.serviceboxfull h4{
+		font-size: 18px !important;
+	}
+	footer h5 {
+		font-size: 18px;
+	}
+	footer ul li a, .contactf p {
+    font-size: 14px;
+}
+	footer ul li {
+		margin-bottom: 8px;
+	}
+
+
+	.timeline .column h2{
+		font-size: 20px;
+		line-height: 1.2;
+	}
+	.timeline .column p{
+		font-size: 14px;
+		line-height: 1.2;
+	}
+	.timelinebig.timeline .column {
+		flex: 1 1 100%;
+	}
+	.timeline.timelinebig {
+		display: flex;
+	}
+	.timeline .topdiv .column:before {
+		top: 0;
+		bottom: auto;
+		left: auto;
+		right: -19px;
+	}
+	.timeline .bottomdiv .column:before {
+		top: 25px;
+		left: -19px;
+	}
+	.timeline .column:after {
+		background: #f5802020 !important;
+	}
+	.timeline .topdiv .column:after {
+		left: auto;
+		right: -13px;
+	}
+	.timeline .bottomdiv .column:after {
+		top: 25px;
+		left: -13px;
+	}
+	.timeline .divider{
+		display: none;
+	}
+	.section.bottomdiv{
+		left: 0;
+	}
+	.section.bottomdiv{
+		top: unset;
+		bottom: -8px;
+	}
+	/*.timeline .bottomdiv .column:after{
+		background: linear-gradient(
+	2deg, #fc812a 0%, rgba(26, 34, 176, 0) 100%);
+	}*/
+	.border_light:nth-child(2){
+		border-color:#ffffff00 !important;
+	}
+
+	.whoweare h2, .gallerydiv h2, .newsandevent h2 {
+		font-size: 22px;
+	}
+	.eventtitle h2 {
+		font-size: 30px;
+	}
+	.book-btn.px-5 {
+		padding-left: 20px !important;
+		padding-right: 20px !important;
+	}
+	.footer-bottom.d-flex{
+		flex-wrap: wrap	;
+		justify-content: center;
+		row-gap: 15px;
+	}
+	.social-icons.ms-auto{
+		margin-left: unset !important;
+	}
+	footer{
+		padding: 60px 0 20px;
+	}
+	.gallery a {
+		grid-column: span 1;
+	}
+	.gallery {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	/* About Page  */
+
+	.page-template-about-us .counter h3 {
+		font-size: 20px;
+	}
+	.excellencebox h3 {
+		font-size: 20px;
+	}
+	.excellencebox p {
+		font-size: 14px;
+	}
+	.tabstyle .nav-pills .nav-link {
+		padding: 6px 18px !important;
+		font-size: 14px;
+	}
+	.member h5 {
+		font-size: 20px;
+	}
+
+	/* Contact Page  */
+	.contact-cms .con-box span {
+		height: 50px;
+		width: 50px;
+	}
+	.contact-cms .con-box span img {
+		height: 22px;
+	}
+	.contact-cms .contact-details .con-box {
+		margin-bottom: 24px;
+	}
+	.core-values .service-card h4 {
+		font-size: 18px;
+		height: auto;
+	}
+	.sec-space {
+		padding: 30px 0;
+	}
+
+	/* Culture Page  */
+	.divblermain {
+		padding: 20px;
+	}
+	.divblermain ul li {
+		padding: 8px 12px;
+		font-size: 14px;
+	}
+	.divblermain h3, .readytojoin h3 {
+		font-size: 20px;
+	}
+	.divblermain p, .readytojoin p {
+		font-size: 14px;
+	}
+}
+
+@media only screen and (max-width: 567px) {
+		.innerbaner.bannerimg{
+		height: 300px;
+	}
+	.pagenation{
+		    top: 18px;
+	}
+.paginationin a{
+	font-size: 12px;
+	padding: 0 10px;
+}
+	.sectiontitle h3 span::after{
+		display: none;
+	}
+	.sectiontitle h3 span::before{
+		display: none;
+	}
+	.drbox figure {
+		width: 54px;
+		height: 54px;
+	}
+	#icon_wrapper {
+		left: auto;
+		right: 0;
+	}
+	.brand-logo img {
+		width: 204px;
+	}
+	section.dreem {
+		padding: 30px 0;
+	}
+	.counter {
+		padding: 12px 0;
+	} 
+	.timeline .bottomdiv .column:before, 
+	.timeline .topdiv .column:before, 
+	.timeline .topdiv .column:after,.timeline .bottomdiv .column:after { 
+		display: none;
+	} 
+	.timeline .topdiv .column{
+		padding-left: 0 !important; 
+		padding-right: 0 !important;
+	} 
+	.timeline .bottomdiv .column{
+		padding-right: 0; 
+		padding-left: 0;
+	} .timelinebig.timeline .column h2{
+		color: #F58020;
+	}
+	.timelinebig.timeline .column p{ 
+		font-size: 14px; 
+		font-weight: 400; 
+	}
+	.section.bottomdiv{ padding-top: 0;}
+	
+
+	/* Strategy Page  */
+	.accordion-button {
+		font-size: 16px !important;
+		padding: 12px 0 !important;
+	}
+	.accordion-body {
+		padding: 20px 10px;
+	}
+}
+
+@media only screen and (max-width: 480px) {
+
+
+
+	.menumain .book-btn{
+		display: none;
+	}
+	.brand-logo img {
+		width: 140px;
+	}
+	.menumain .btnstyle{
+		        margin: 0 10px !important;
+	}
+	.patnerslogo{
+		height: 75px;
+	}
+	.patnerlogofooter img{
+		    max-width: 100px;
+	}
+	.social-icons a img {
+		height: 26px;
+	}
+	.logofooter {
+		margin-bottom: 12px;
+	}
+	.stellarnav .menu-toggle span.bars span {
+		width: 20px;
+		margin: 0 0 4px;
+	}
+	.stellarnav .menu-toggle {
+		padding: 0;
+	}
+	
+	.banner_main .carousel-caption h1 {
+		font-size: 18px;
+	}
+	.banner_main .carousel-caption p {
+		font-size: 11px;
+	}
+	.drbox {
+		margin: 0;
+	}
+	.drbox figure {
+		width: 60px;
+		height: 60px;
+	}
+	.drbox h3 {
+		font-size: 22px;
+	}
+	.drbox h3 span {
+		font-size: 16px;
+	}
+	.drmaindiv .row [class*="col-"], .footer-row [class*="col-"]{
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+	.owl-theme .owl-dots .owl-dot span {
+		width: 8px;
+		height: 8px;
+	}
+	
+}

@@ -1,0 +1,867 @@
+
+.loader-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+
+/* =========================================================
+   DOCUMENT UPLOAD SECTION
+========================================================= */
+
+.document-upload-group {
+    margin-bottom: 20px;
+}
+
+.document-row {
+    row-gap: 20px;
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.document-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    margin-bottom: 8px;
+}
+
+.document-label h6 {
+    margin: 0;
+
+    color: #24262a;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.document-label span {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #8b9097;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   UPLOADED BADGE
+========================================================= */
+
+.uploaded-badge {
+    display: inline-flex !important;
+
+    align-items: center;
+    gap: 3px;
+
+    margin: 0 !important;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    background: #eaf8ef;
+
+    color: #198754 !important;
+
+    font-size: 10px !important;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   PROFILE PHOTO
+========================================================= */
+
+.profile-upload-box {
+    display: flex;
+    align-items: center;
+
+    gap: 18px;
+
+    padding: 14px;
+
+    border: 1px solid #e7e9ed;
+
+    border-radius: 12px;
+
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #fafaff 100%
+    );
+
+    transition: .2s ease;
+}
+
+.profile-upload-box:hover {
+    border-color: #d4d0ff;
+
+    box-shadow: 0 5px 18px rgba(50, 31, 219, .06);
+}
+
+
+/* =========================================================
+   PROFILE IMAGE
+========================================================= */
+
+.profile-image-wrapper {
+    flex-shrink: 0;
+}
+
+.profile-image {
+    display: block;
+
+    width: 110px;
+    height: 110px;
+
+    object-fit: cover;
+
+    border-radius: 12px;
+
+    border: 1px solid #e0e3e8;
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, .08);
+}
+
+.profile-image-placeholder {
+    width: 110px;
+    height: 110px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    border-radius: 12px;
+
+    background: #f5f6f8;
+
+    border: 1px dashed #d1d5da;
+
+    color: #a0a5ab;
+}
+
+.placeholder-icon {
+    font-size: 30px;
+
+    opacity: .65;
+}
+
+.profile-image-placeholder span {
+    margin-top: 3px;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   PROFILE DETAILS
+========================================================= */
+
+.profile-upload-details {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.selected-filename {
+    color: #292d32;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-file-info {
+    margin-top: 4px;
+
+    color: #8b9198;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   PDF CARD
+========================================================= */
+
+.pdf-upload-box {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    min-height: 125px;
+
+    padding: 14px;
+
+    border: 1px solid #e7e9ed;
+
+    border-radius: 12px;
+
+    background: #fff;
+
+    transition: .2s ease;
+}
+
+.pdf-upload-box:hover {
+    border-color: #d4d0ff;
+
+    box-shadow:
+        0 5px 18px rgba(50, 31, 219, .06);
+}
+
+
+/* =========================================================
+   PDF ICON
+========================================================= */
+
+.pdf-file-icon {
+    position: relative;
+
+    width: 52px;
+    height: 62px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    padding-bottom: 9px;
+
+    border: 1px solid #e0e2e5;
+
+    border-radius: 7px;
+
+    background: #fff;
+
+    color: #dc3545;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, .05);
+}
+
+.pdf-file-icon::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 5px;
+
+    border-radius: 7px 7px 0 0;
+
+    background: #dc3545;
+}
+
+.pdf-fold {
+    position: absolute;
+
+    top: 0;
+    right: 0;
+
+    width: 17px;
+    height: 17px;
+
+    background: #ffe2e2;
+
+    clip-path: polygon(
+        0 0,
+        100% 100%,
+        100% 0
+    );
+}
+
+.certificate-pdf::before {
+    background: #321fdb;
+}
+
+.certificate-pdf .pdf-fold {
+    background: #e5e2ff;
+}
+
+
+/* =========================================================
+   PDF CONTENT
+========================================================= */
+
+.pdf-file-content {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.pdf-file-name {
+    color: #30343a;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pdf-file-name.empty {
+    color: #969ba1;
+
+    font-weight: 500;
+}
+
+.pdf-file-type {
+    margin-top: 4px;
+
+    color: #969ba1;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.file-actions,
+.pdf-actions {
+    display: flex;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 12px;
+}
+
+
+/* Main button */
+
+.action-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    padding: 7px 12px;
+
+    border: 0;
+
+    border-radius: 7px;
+
+    background: #321fdb;
+
+    color: #fff;
+
+    font-size: 10px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+}
+
+.action-primary:hover {
+    background: #2819b8;
+
+    transform: translateY(-1px);
+}
+
+.action-primary.small {
+    padding: 6px 10px;
+}
+
+
+/* View */
+
+.action-secondary {
+    padding: 6px 10px;
+
+    border: 1px solid #dfe2e6;
+
+    border-radius: 7px;
+
+    background: #fff;
+
+    color: #555b62;
+
+    font-size: 10px;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+}
+
+.action-secondary:hover {
+    background: #f6f7f8;
+}
+
+
+/* Remove */
+
+.action-danger {
+    padding: 6px 3px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #dc3545;
+
+    font-size: 10px;
+
+    cursor: pointer;
+}
+
+.action-danger:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   VALIDATION
+========================================================= */
+
+.upload-error {
+    margin-top: 6px;
+
+    color: #dc3545;
+
+    font-size: 11px;
+}
+
+.upload-required {
+    margin-top: 6px;
+
+    color: #dc3545;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 576px) {
+
+    .profile-upload-box {
+        align-items: flex-start;
+
+        gap: 12px;
+    }
+
+    .profile-image,
+    .profile-image-placeholder {
+        width: 85px;
+        height: 85px;
+    }
+
+    .pdf-upload-box {
+        padding: 11px;
+    }
+
+    .pdf-file-icon {
+        width: 45px;
+        height: 55px;
+    }
+}
+.w-100 {
+    width: 100%;
+}
+
+.w-100 :deep(.p-autocomplete-input) {
+    width: 100%;
+}
+/* Profile image styling */
+/* Profile image styling */
+.profile-img {
+  width: 80px;           /* Increased from 40px to 120px */
+  height: 80px;          /* Increased from 40px to 120px */
+  border-radius: 50%;     /* Keeps the image perfectly round */
+  object-fit: cover;      /* Prevents distortion and stretching */
+  border: 2px solid #ccc; /* Optional border */
+  display: block;         /* Removes extra inline whitespace */
+}
+.filter-card {
+  border-top: 3px solid var(--cui-primary) !important;
+}
+.bulk-approve-bar {
+  min-height: 56px;
+  padding: 8px 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* Selected information */
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selected-count {
+  min-width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 8px;
+  border-radius: 7px;
+
+  background: #eef0ff;
+  color: var(--cui-primary);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.selected-text {
+  color: #667085;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Bulk Approve button */
+.bulk-approve-btn {
+  height: 40px;
+  min-width: 150px;
+
+  border-radius: 7px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.2s ease;
+}
+
+.bulk-approve-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.bulk-approve-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background-color: #db0a5f !important; /* Changes the button fill color */
+  border-color: #db0a5f !important;     /* Changes the border color */
+  color: #ffffff !important;            /* Changes the text color (highly recommended) */
+}
+.action-primary{
+  background-color: #db0a5f !important; /* Changes the button fill color */
+  border-color: #db0a5f !important;     /* Changes the border color */
+  color: #ffffff !important;            /* Changes the text color (highly recommended) */
+}
+.sidebar-dark{
+background-color: #FDF9FA !important; /* Changes only the border color */
+
+  border-color:#FDF9FA !important;
+}
+.nav-link{
+    color: black !important;
+}
+div.border-end {
+  border-right: 1px solid #FDF9FA !important;
+
+
+}
+div.border-top {
+  border-top: 1px solid #FDF9FA !important;
+}
+div.border-bottom {
+  border-bottom: 1px solid #FDF9FA !important;
+}
+
+
+
+ .nav-link.active {
+    background-color:#db0a5f !important ;
+    color: #ffffff !important;
+}
+.nav-link:hover{
+     background-color:#db0a5f !important ;
+    color: #ffffff !important;
+}
+.sidebar-toggler {
+  background-color: #db0a5f !important;
+  color: #ffffff !important;
+
+}
+
+.loginlogo img {
+		width: 200px;
+	}
+	.heightvh{
+		    min-height: 100vh;
+	}
+	.loginmain {
+		width: 100%;
+		max-width: 370px;
+	}
+	.loginlogo{
+		    margin-bottom: 15px;
+	}
+	.loginmain h2{
+		color: #db0a5f !important;
+		font-size: 37px;
+		margin-bottom: 10px;
+	}
+	.rightimg{
+		overflow: hidden;
+	}
+	.rightimg img{
+		width: 100%;
+		height: 100vh;
+		object-fit: cover;
+	}
+	.btn-color{
+		background-color: #db0a5f !important;
+		color: #fff !important;
+		text-transform: uppercase;
+	}
+	.rightimg{
+		position: relative;
+	}
+	.passmain{
+		position: relative;
+	}
+	.eye-btn{
+		    position: absolute;
+    right: 2px;
+    bottom: 10px;
+	}
+
+	/* next */
+
+	.sidebar-header{
+		padding: 10px;
+	}
+	.sidebar-brand-full {
+		height: 40px;
+		margin: 0 auto;
+		width: 100%;
+		object-fit: contain;
+	}
+.sidebar-nav .nav-icon {
+    color: #000 !important;
+}
+
+/* =========================================================
+   VIEW ENROLMENT
+   ========================================================= */
+
+.view-enrolment {
+  padding: 0;
+}
+
+/* Section */
+.view-section {
+  background: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 12px;
+  padding: 16px 22px;
+  margin-bottom: 14px;
+}
+
+.view-section-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #24466d;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #dfe4ea;
+}
+
+/* Field */
+.view-field {
+  height: 100%;
+}
+
+.view-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #59697b;
+  margin-bottom: 7px;
+}
+
+.view-value {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+
+  background: #f8fafc;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+
+  padding: 7px 12px;
+
+  font-size: 15px;
+  color: #34465a;
+
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.view-value-multiline {
+  min-height: 62px;
+  align-items: flex-start;
+  white-space: pre-line;
+}
+
+/* Rich text */
+.view-rich-text {
+  min-height: 75px;
+
+  background: #f8fafc;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+
+  padding: 9px 12px;
+
+  font-size: 14px;
+  line-height: 1.5;
+  color: #34465a;
+
+  overflow-wrap: break-word;
+}
+
+/* Rating */
+.view-value .rating-number {
+  margin-left: 8px;
+  color: #64748b;
+}
+
+
+/* =========================================================
+   MODAL SIZE
+   ========================================================= */
+
+/* CoreUI modal */
+.modal-dialog.modal-xl {
+  max-width: 850px;
+}
+
+.modal-content {
+  border-radius: 12px;
+}
+
+
+/* =========================================================
+   MODAL BODY
+   ========================================================= */
+
+.modal-body {
+  padding: 14px 18px;
+  max-height: 78vh;
+  overflow-y: auto;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+   ========================================================= */
+
+.modal-header {
+  padding: 15px 20px;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #343b48;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+   ========================================================= */
+
+.modal-footer {
+  padding: 10px 18px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 991px) {
+
+  .modal-dialog.modal-xl {
+    max-width: 90%;
+  }
+
+}
+
+@media (max-width: 767px) {
+
+  .modal-dialog.modal-xl {
+    max-width: 95%;
+    margin: 10px auto;
+  }
+
+  .view-section {
+    padding: 14px;
+  }
+
+  .view-section-title {
+    font-size: 16px;
+  }
+
+}
+.has-placement {
+    background-color: #f0fdf4 !important;
+    border-left: 4px solid #16a34a !important;
+}
+
+.has-placement:hover {
+    background-color: #dcfce7 !important;
+}
+.dashboard-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+}
