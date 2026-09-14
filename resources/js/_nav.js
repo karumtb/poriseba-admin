@@ -2,6 +2,12 @@ import {
   cilSpeedometer,
   cilLockLocked,
   cilUser,
+  cilSettings,
+  cilBank,
+  cilBriefcase,
+  cilClipboard,
+  cilLibraryAdd,
+  cilCash,
 } from '@coreui/icons'
 
 export default function getNav(user) {
@@ -25,12 +31,14 @@ export default function getNav(user) {
                 component: 'CNavItem',
                 name: 'Instititute',
                 to: '/user/institute',
+                icon: cilBank,
 
             },
             {
                 component: 'CNavItem',
                 name: 'Hiring Organization',
                 to: '/user/hospital',
+                icon: cilBriefcase,
             },
 
             ],
@@ -43,7 +51,7 @@ export default function getNav(user) {
         component: 'CNavItem',
         name: 'Enrolment',
         to: '/enrolment',
-        icon: cilUser,
+        icon: cilClipboard,
         },
         ...(user?.role === 'admin'
       ? [
@@ -51,13 +59,13 @@ export default function getNav(user) {
                 component: 'CNavItem',
                 name: 'Placement Request',
                 to: '/placement-request',
-                icon: cilUser,
+                icon: cilLibraryAdd,
           },
           {
                 component: 'CNavItem',
                 name: 'Subscription Plan',
                 to: '/subscription-plan',
-                icon: cilUser,
+                icon: cilCash,
           },
 
         ]
@@ -67,7 +75,7 @@ export default function getNav(user) {
         component: 'CNavItem',
         name: 'Setting',
         to: '/setting',
-        icon: cilLockLocked,
+        icon: cilSettings,
         },
   ]
 }
