@@ -29,14 +29,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="position-relative">
+  <div class="position-relative"> 
     <!-- Loader -->
     <div v-if="loading" class="dashboard-loader">
       <CSpinner color="primary" />
     </div>
 
     <CRow :xs="{ gutter: 4 }">
-      <CCol :sm="6" :xl="4" :xxl="4">
+      <CCol :sm="6" :xl="3" :xxl="3">
         <CWidgetStatsA color="primary">
           <template #value>
             {{ summary_data?.total_enrolment }}
@@ -48,8 +48,8 @@ onMounted(() => {
 
       <CCol
         :sm="6"
-        :xl="4"
-        :xxl="4"
+        :xl="3"
+        :xxl="3"
         v-if="authStore.user?.role == 'admin'"
       >
         <CWidgetStatsA color="info">
@@ -63,8 +63,8 @@ onMounted(() => {
 
       <CCol
         :sm="6"
-        :xl="4"
-        :xxl="4"
+        :xl="3"
+        :xxl="3"
         v-if="authStore.user?.role == 'admin'"
       >
         <CWidgetStatsA color="warning">
@@ -72,7 +72,7 @@ onMounted(() => {
             0
           </template>
 
-          <template #title>Subscription Booking</template>
+          <template #title>Hiring Organisation</template>
         </CWidgetStatsA>
       </CCol>
 

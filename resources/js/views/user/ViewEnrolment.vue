@@ -30,6 +30,19 @@ const formatDate = (date) => {
         hour12: true,
     });
 };
+const formatnormalDate = (date) => {
+    if (!date) {
+        return '-';
+    }
+
+    const formattedDate = new Date(date.replace(' ', 'T'));
+
+    const day = String(formattedDate.getDate()).padStart(2, '0');
+    const month = String(formattedDate.getMonth() + 1).padStart(2, '0');
+    const year = formattedDate.getFullYear();
+
+    return `${day}/${month}/${year}`;
+};
 </script>
 <template>
     <!-- ================= BASIC INFORMATION ================= -->
@@ -349,7 +362,51 @@ const formatDate = (date) => {
         </CRow>
 
     </div>
+    <!-- ================= PAST EXPERIENCE ================= -->
 
+<div class="view-section" v-if="data?.past_experience?.length">
+
+    <div class="view-section-title">
+        <span>Past Experience</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table past-experience-table">
+            <thead>
+                <tr>
+                    <th>Sl. No.</th>
+                    <th>Hiring Agency</th>
+                    <th>Start Date</th>
+                    <th>Release Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr
+                    v-for="(past_data, index) in data.past_experience"
+                    :key="past_data.id || index"
+                >
+                    <td>
+                        {{ index + 1 }}
+                    </td>
+
+                    <td>
+                        {{ past_data?.hospital?.name || '-' }}
+                    </td>
+
+                    <td>
+                        {{ formatnormalDate(past_data?.created_at) }}
+                    </td>
+
+                    <td>
+                        {{ formatnormalDate(past_data?.released_at) }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
 
     <!-- ================= PROFILE PHOTO ================= -->
 

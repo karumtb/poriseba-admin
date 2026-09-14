@@ -26,7 +26,7 @@ import { CRow, CCol, CCard, CCardHeader, CCardBody, CForm, CFormLabel, CFormInpu
 
 import CIcon from '@coreui/icons-vue';
 
-import { cilPencil, cilTrash, cilPlus, cilSave, cilX, cilSearch, cilReload, cilCheckCircle,cilEyedropper,cilLowVision } from '@coreui/icons';
+import { cilPencil, cilTrash, cilPlus, cilSave, cilX, cilSearch, cilReload, cilCheckCircle,cilEyedropper,cilLowVision,cilLockUnlocked } from '@coreui/icons';
 
 import Swal from 'sweetalert2';
 
@@ -461,6 +461,46 @@ const resetForm = () => {
 
   certificatePreviewUrl.value = null;
 };
+/*
+|--------------------------------------------------------------------------
+| Release Enrolment
+|--------------------------------------------------------------------------
+*/
+const releaseEnrolement=(id)=>{
+ Swal.fire({
+    title: 'Are you sure?',
+
+    text: 'You are about to release this employee. This action will release the employee from the current hospital.',
+
+    icon: 'warning',
+
+    showCancelButton: true,
+
+    confirmButtonText: 'Yes, release employee!',
+
+    cancelButtonText: 'Cancel',
+  }).then(async (result) => {
+    if (!result.isConfirmed) {
+      return;
+    }
+    try {
+      const response = await api.post('/enrolment/release', {
+        id: id,
+      });
+      if (response.data.status) {
+        toast.success(response.data.message);
+        getEnrolments();
+      }
+      else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error(error);
+
+      toast.error(error.response?.data?.message);
+    }
+  });
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -1026,6 +1066,10 @@ try {
               <Column header="Designation" #body="{ data }" >{{ data?.designation?.name }}</Column>
               <Column header="Action">
                 <template #body="{ data }">
+
+                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="releaseEnrolement(data.id)" v-if="data.hospital_id && authStore.user.role == 'admin'">
+                    <CIcon :icon="cilLockUnlocked" />
+                  </CButton>
                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
                     <CIcon :icon="cilLowVision" />
                   </CButton>
@@ -1124,7 +1168,7 @@ try {
                    <CCol md="6" class="mb-3">
                     <!-- Last Name -->
                     <CFormLabel>Gender</CFormLabel>
-                    <CFormSelect size="lg" class="form-control " aria-label="Large select example"  v-model.trim="form.gender"
+                    <CFormSelect size="md" class="form-control " aria-label="Large select example"  v-model.trim="form.gender"
                       :class="{
                         'is-invalid': submitted && isInvalid('gender'),
                       }"

@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->group(function () {
     Route::post('/enrolment/bulk-approve', [EnrolmentController::class, 'bulkApprove']);
     Route::post('/hiring-request/approve', [EnrolmentController::class, 'bulkApproveHiring']);
+    Route::post('/enrolment/release', [EnrolmentController::class, 'releaseEnrolment']);
 
 
     });
@@ -53,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::middleware('role:hospital')->group(function () {
     Route::post('/enrolment/hiring', [EnrolmentController::class, 'bulkHiringRequest']);
+
     });
 
     // Authenticated users

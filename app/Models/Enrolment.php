@@ -45,7 +45,8 @@ class Enrolment extends Model
         'fb_reviews',
         'insta_reviews',
         'google_reviews',
-        'gender'
+        'gender',
+        'hospital_id'
     ];
     public function vendor()
     {
@@ -54,6 +55,10 @@ class Enrolment extends Model
     public function designation()
     {
         return $this->belongsTo(Designation::class, 'designation', 'id');
+    }
+    public function past_experience()
+    {
+         return $this->hasMany(EnrolmentHiring::class,'enrolment_id','id');
     }
     /**
      * Get the full URL for the enrolment profile preview.

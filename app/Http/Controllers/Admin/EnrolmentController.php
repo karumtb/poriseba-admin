@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrolment;
 use App\Models\PlacementApplication;
 use App\Models\ViewPlacementApplication;
+use App\Models\EnrolmentHiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -450,7 +451,7 @@ class EnrolmentController extends Controller
 
         $user = Auth::user();
 
-        $query = Enrolment::with(['vendor','designation'])
+        $query = Enrolment::with(['vendor','designation','past_experience.hospital'])
 
             ->where('id', $request->id);
 
@@ -529,6 +530,30 @@ class EnrolmentController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Enrolment deleted successfully',
+        ]);
+    }
+
+    /*** Release enrolment*/
+    public function releaseEnrolment(Request $request)
+    {
+        $request->validate([
+            'id' => [
+                'required',
+                'exists:enrolments,id',
+            ],
+        ]);
+
+        $enrolment = Enrolment::where('id', $request->id)->first();
+        EnrolmentHiring::where('hospital_id', $enrolment->hospital_id)
+        ->where('enrolment_id', $enrolment->id)
+        ->whereNull('released_at')
+        ->update([
+            'released_at' => now()->toDateString(),
+        ]);
+        $enrolment->update(['hospital_id' => NULL]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Enrolment released successfully',
         ]);
     }
     /**
@@ -621,78 +646,98 @@ class EnrolmentController extends Controller
      * Bulk Approve Hiring Request
      */
    public function bulkApproveHiring(Request $request)
-    {
-        $validated = $request->validate([
-            'ids' => [
-                'required',
-                'array',
-                'min:1',
-            ],
+{
+    $validated = $request->validate([
+        'ids' => [
+            'required',
+            'array',
+            'min:1',
+        ],
 
-            'ids.*' => [
-                'required',
-                'integer',
-                'exists:placement_applications,id',
-            ],
-        ]);
+        'ids.*' => [
+            'required',
+            'integer',
+            'exists:placement_applications,id',
+        ],
+    ]);
 
-        $ids = $validated['ids'];
+    $ids = $validated['ids'];
 
-        try {
+    try {
 
-            /*
-            * 1. Bulk approve Placement Applications
-            */
-            $updated = PlacementApplication::whereIn('id', $ids)
+
+        /*
+         * 1. Get selected Placement Applications
+         */
+        $applications = PlacementApplication::whereIn('id', $ids)
+            ->whereNotNull('enrolment_id')
+            ->get([
+                'id',
+                'enrolment_id',
+                'hospital_id',
+            ]);
+
+        /*
+         * 2. Bulk approve Placement Applications
+         */
+        $updated = PlacementApplication::whereIn('id', $ids)
+            ->update([
+                'status' => 'A',
+                'updated_at' => now(),
+            ]);
+
+        /*
+         * 3. Update hospital_id in Enrolments
+         */
+        foreach ($applications as $application) {
+            Enrolment::where('id', $application->enrolment_id)
                 ->update([
-                    'status' => 'A',
+                    'hospital_id' => $application->hospital_id,
                     'updated_at' => now(),
                 ]);
-
-
-            /*
-            * 2. Get Enrolment IDs belonging to selected applications
-            */
-            $enrolmentIds = PlacementApplication::whereIn('id', $ids)
-                ->whereNotNull('enrolment_id')
-                ->pluck('enrolment_id');
-
-
-            /*
-            * 3. Bulk assign hospital_id to Enrolments
-            *
-            * Each Enrolment gets the hospital_id
-            * from its corresponding PlacementApplication.
-            */
-            Enrolment::whereIn('id', $enrolmentIds)
-                ->update([
-                    'hospital_id' => PlacementApplication::select('hospital_id')
-                        ->whereColumn(
-                            'placement_applications.enrolment_id',
-                            'enrolments.id'
-                        )
-                        ->whereIn('placement_applications.id', $ids)
-                        ->limit(1),
-
-                    'updated_at' => now(),
-                ]);
-
-
-            return response()->json([
-                'status' => true,
-                'message' => "{$updated} enrolment(s) have been approved successfully.",
-                'data' => $updated,
-            ], 200);
-
-        } catch (\Throwable $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to approve enrolments.',
-                'error' => $e->getMessage(),
-            ], 500);
         }
+
+        /*
+         * 4. Prepare EnrolmentHiring records
+         */
+        $now = now();
+
+        $hiringData = $applications->map(function ($application) use ($now) {
+            return [
+                'enrolment_id' => $application->enrolment_id,
+                'hospital_id'  => $application->hospital_id,
+                'released_at'  => null,
+                'created_at'   => $now,
+                'updated_at'   => $now,
+            ];
+        })->toArray();
+
+        /*
+         * 5. Bulk insert into EnrolmentHiring
+         */
+        if (!empty($hiringData)) {
+            EnrolmentHiring::insert($hiringData);
+        }
+
+
+
+        return response()->json([
+            'status' => true,
+            'message' => "{$updated} enrolment(s) have been approved successfully.",
+            'data' => $updated,
+        ], 200);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to approve enrolments.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
  /**
      * Toogle Enrolment Status
      */

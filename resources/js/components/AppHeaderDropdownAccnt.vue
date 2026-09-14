@@ -41,7 +41,7 @@ const logout = async () => {
         component="h6"
         class="bg-body-secondary text-body-secondary fw-semibold my-2"
       >
-        Admin
+        {{authStore.user?.name}}
       </CDropdownHeader>
 
       <CDropdownItem @click="logout" style="cursor: pointer"><CIcon :icon="cilLockLocked" /> Logout </CDropdownItem>
