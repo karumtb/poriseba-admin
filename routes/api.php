@@ -21,4 +21,5 @@ Route::get('/user', function (Request $request) {
 // LEFT JOIN enrolments AS e ON pa.enrolment_id = e.id
 // LEFT JOIN designations AS d ON e.designation = d.id
 // LEFT JOIN users AS v ON v.id = e.vendor_id
-// LEFT JOIN users AS h ON h.id = pa.hospital_id;
+// LEFT JOIN users AS h ON h.id = pa.hospital_id
+// WHERE pa.status != 'R';

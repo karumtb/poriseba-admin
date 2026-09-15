@@ -550,6 +550,12 @@ class EnrolmentController extends Controller
         ->update([
             'released_at' => now()->toDateString(),
         ]);
+         PlacementApplication::where('hospital_id', $enrolment->hospital_id)
+        ->where('enrolment_id', $enrolment->id)
+        ->where('status','A')
+        ->update([
+            'status' => 'R',
+        ]);
         $enrolment->update(['hospital_id' => NULL]);
         return response()->json([
             'status' => true,
