@@ -1,0 +1,55 @@
+// CREATE VIEW view_placement_applications AS
+// SELECT
+//     pa.id,
+//     CONCAT(e.first_name, ' ', e.last_name) AS name,
+//     pa.status,
+//     e.phone,
+//     e.profile_photo,
+//     d.id AS designation_id,
+//     d.name AS designation_name,
+//     h.name AS hospital,
+//     v.name AS vendor
+// FROM placement_applications AS pa
+// LEFT JOIN enrolments AS e ON pa.enrolment_id = e.id
+// LEFT JOIN designations AS d ON e.designation = d.id
+// LEFT JOIN users AS v ON v.id = e.vendor_id
+// LEFT JOIN users AS h ON h.id = pa.hospital_id
+// WHERE pa.status != 'R' AND pa.deleted_at IS NULL;
+
+
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS after_users_soft_delete$$
+
+CREATE TRIGGER after_users_soft_delete
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+
+        -- Soft delete placement applications
+        UPDATE placement_applications
+        SET deleted_at = NEW.deleted_at
+        WHERE hospital_id = NEW.id;
+
+        -- Soft delete enrolment hirings
+        UPDATE enrolment_hirings
+        SET deleted_at = NEW.deleted_at
+        WHERE hospital_id = NEW.id;
+
+        -- Remove hospital from enrolments only
+        UPDATE enrolments
+        SET hospital_id = NULL
+        WHERE hospital_id = NEW.id;
+
+        UPDATE enrolments
+        SET deleted_at = NEW.deleted_at
+        WHERE vendor_id = NEW.id;
+
+    END IF;
+
+END$$
+
+DELIMITER ;
