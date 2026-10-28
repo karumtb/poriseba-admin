@@ -190,13 +190,13 @@ class EnrolmentController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('enrolments', 'email')->ignore($id),
+                Rule::unique('enrolments', 'email')->ignore($id)->withoutTrashed(),
             ],
 
             'phone' => [
                 'required',
                 'regex:/^[0-9]{10}$/',
-                  Rule::unique('enrolments', 'phone')->ignore($id),
+                  Rule::unique('enrolments', 'phone')->ignore($id)->withoutTrashed(),
             ],
            'designation' => [
                 'required',

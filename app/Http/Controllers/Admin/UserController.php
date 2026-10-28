@@ -34,13 +34,13 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($id),
+                Rule::unique('users', 'email')->ignore($id)->withoutTrashed(),
             ],
 
             'phone' => [
                 'required',
                 'digits:10',
-                Rule::unique('users', 'phone')->ignore($id),
+                Rule::unique('users', 'phone')->ignore($id)->withoutTrashed(),
             ],
             'role' => [
                 'required',
