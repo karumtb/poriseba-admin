@@ -1,6 +1,5 @@
 import {
   cilSpeedometer,
-  cilLockLocked,
   cilUser,
   cilSettings,
   cilBank,
@@ -8,7 +7,8 @@ import {
   cilClipboard,
   cilLibraryAdd,
   cilCash,
-} from '@coreui/icons'
+  cilMedicalCross,
+} from '@coreui/icons';
 
 export default function getNav(user) {
   return [
@@ -19,63 +19,74 @@ export default function getNav(user) {
       icon: cilSpeedometer,
     },
 
+    // Patient Management
+    {
+      component: 'CNavItem',
+      name: 'Patient Management',
+      icon: cilMedicalCross,
+      items: [
+        {
+          component: 'CNavItem',
+          name: 'Patient Onboarding',
+          to: '/patient/onboarding',
+          icon: cilBank,
+        },
+      ],
+    },
+
     ...(user?.role === 'admin'
       ? [
           {
-            component: 'CNavItem',
+            component: 'CNavGroup',
             name: 'User',
-            to: '/user',
             icon: cilUser,
             items: [
-            {
+              {
                 component: 'CNavItem',
-                name: 'Instititute',
+                name: 'Institute',
                 to: '/user/institute',
                 icon: cilBank,
-
-            },
-            {
+              },
+              {
                 component: 'CNavItem',
                 name: 'Hiring Organization',
                 to: '/user/hospital',
                 icon: cilBriefcase,
-            },
-
+              },
             ],
           },
-
         ]
       : []),
 
-        {
-        component: 'CNavItem',
-        name: 'Enrolment',
-        to: '/enrolment',
-        icon: cilClipboard,
-        },
-        ...(user?.role === 'admin'
+    {
+      component: 'CNavItem',
+      name: 'Enrolment',
+      to: '/enrolment',
+      icon: cilClipboard,
+    },
+
+    ...(user?.role === 'admin'
       ? [
-           {
-                component: 'CNavItem',
-                name: 'Placement Request',
-                to: '/placement-request',
-                icon: cilLibraryAdd,
+          {
+            component: 'CNavItem',
+            name: 'Placement Request',
+            to: '/placement-request',
+            icon: cilLibraryAdd,
           },
           {
-                component: 'CNavItem',
-                name: 'Subscription Plan',
-                to: '/subscription-plan',
-                icon: cilCash,
+            component: 'CNavItem',
+            name: 'Subscription Plan',
+            to: '/subscription-plan',
+            icon: cilCash,
           },
-
         ]
       : []),
 
-        {
-        component: 'CNavItem',
-        name: 'Setting',
-        to: '/setting',
-        icon: cilSettings,
-        },
-  ]
+    {
+      component: 'CNavItem',
+      name: 'Setting',
+      to: '/setting',
+      icon: cilSettings,
+    },
+  ];
 }
