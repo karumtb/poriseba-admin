@@ -17,7 +17,7 @@ const sidebar = useSidebarStore()
     :visible="sidebar.visible"
     @visible-change="(value) => sidebar.toggleVisible(value)"
   >
-    <CSidebarHeader class="border-bottom">
+    <CSidebarHeader class="header-logo">
       <RouterLink custom to="/" v-slot="{ href, navigate }">
         <CSidebarBrand v-bind="$attrs" as="a" :href="href" @click="navigate">
          <img :src="logo" class="sidebar-brand-full" height="32"alt="Logo"/>
