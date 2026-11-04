@@ -567,11 +567,11 @@
 
   border-color: #0f172a !important;
 }
-.sidebar-nav .nav-link{
+.sidebar-nav .nav-link {
   color: #fff !important;
 }
 .sidebar-nav .nav-link:after {
-    background: #ffffff !important;
+  background: #ffffff !important;
 }
 .nav-link {
   color: fff !important;
@@ -585,10 +585,10 @@ div.border-top {
 div.border-bottom {
   border-bottom: 1px solid #e7e7e7 !important;
 }
-.header-logo{
+.header-logo {
   background-color: #fff;
 }
-.container-full{
+.container-full {
   max-width: 100% !important;
 }
 
@@ -930,7 +930,7 @@ div.border-bottom {
 .past-experience-table td:nth-child(3),
 .past-experience-table td:nth-child(4) {
   white-space: nowrap;
-} 
+}
 
 /* ======================================Karunadri Patient Management 31-10-2026============================ */
 .patient-management-page {
