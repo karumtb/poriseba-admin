@@ -8,6 +8,7 @@ import {
   cilLibraryAdd,
   cilCash,
   cilMedicalCross,
+  cilHome,
 } from '@coreui/icons';
 
 export default function getNav(user) {
@@ -29,6 +30,19 @@ export default function getNav(user) {
           component: 'CNavItem',
           name: 'Patient Onboarding',
           to: '/patient/onboarding',
+          icon: cilBank,
+        },
+      ],
+    },
+    {
+      component: 'CNavItem',
+      name: 'Caregiver Assignment',
+      icon: cilHome,
+      items: [
+        {
+          component: 'CNavItem',
+          name: 'New Assignment',
+          to: '/caregiver/assignment',
           icon: cilBank,
         },
       ],

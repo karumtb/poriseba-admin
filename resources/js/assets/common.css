@@ -573,7 +573,7 @@
   font-size: 15px;
 }
 .sidebar-nav .nav-link:after {
-    background: #ffffff !important;
+  background: #ffffff !important;
 }
 .nav-link {
   color: fff !important;
@@ -587,10 +587,10 @@ div.border-top {
 div.border-bottom {
   border-bottom: 1px solid #e7e7e7 !important;
 }
-.header-logo{
+.header-logo {
   background-color: #fff;
 }
-.container-full{
+.container-full {
   max-width: 100% !important;
 }
 
@@ -932,7 +932,7 @@ div.border-bottom {
 .past-experience-table td:nth-child(3),
 .past-experience-table td:nth-child(4) {
   white-space: nowrap;
-} 
+}
 
 /* ======================================Karunadri Patient Management 31-10-2026============================ */
 .patient-management-page {
@@ -2637,3 +2637,209 @@ div.border-bottom {
 /* ===============================END PAtient============================================= */
 
 /* Page styles are scoped so the existing CoreUI header/sidebar and other pages stay unchanged. */
+/* ==========================================================
+   Caregiver Assignment
+========================================================== */
+
+.assignment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assignment-form-card,
+.fee-configuration-card,
+.location-preference-card {
+  margin-bottom: 0;
+}
+
+.assignment-form-card .card-body,
+.location-preference-card .card-body {
+  padding: 12px;
+}
+
+/* ==========================================================
+   Assignment Basic Information
+========================================================== */
+
+.assignment-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.assignment-basic-grid .field-group:nth-child(1),
+.assignment-basic-grid .field-group:nth-child(2),
+.assignment-basic-grid .field-group:nth-child(3) {
+  grid-column: span 4;
+}
+
+.assignment-basic-grid .field-group:nth-child(4),
+.assignment-basic-grid .field-group:nth-child(5),
+.assignment-basic-grid .field-group:nth-child(6) {
+  grid-column: span 2;
+}
+
+.assignment-basic-grid .field-group:nth-child(7),
+.assignment-basic-grid .field-group:nth-child(8) {
+  grid-column: span 3;
+}
+
+/* ==========================================================
+   Fee Configuration
+========================================================== */
+
+.fee-configuration-card {
+  border: 1px solid #f1dce7;
+  background: #fff8fb;
+}
+
+.fee-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff2f7;
+  color: #d92c73;
+  border-bottom: 1px solid #f1dce7;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.fee-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1.6fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.fee-input-group,
+.duration-field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fee-input-group span {
+  white-space: nowrap;
+  padding: 7px 9px;
+  background: #eef2f8;
+  border: 1px solid #dce4ef;
+  border-radius: 4px;
+  color: #63738c;
+  font-size: 11px;
+}
+
+.duration-field > * {
+  min-width: 0;
+  flex: 1;
+}
+
+.estimated-amount {
+  background: #ffeaf2;
+  color: #e32b72;
+  font-size: 19px;
+  font-weight: 800;
+  text-align: center;
+  padding: 7px;
+  border-radius: 5px;
+  min-height: 34px;
+}
+
+.fee-calculation {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-bottom: 3px;
+}
+
+.calculation-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #7c8ba2;
+  font-size: 10px;
+}
+
+.calculation-info svg {
+  color: #438bdc;
+  flex-shrink: 0;
+}
+
+.checkbox-field,
+.radio-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #526580;
+  font-size: 11px;
+  margin: 0;
+}
+
+.checkbox-field input,
+.radio-field input {
+  accent-color: #2868bd;
+}
+
+/* ==========================================================
+   Location & Preferences
+========================================================== */
+
+.location-preference-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 2fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.radio-options {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-height: 31px;
+}
+
+.location-preference-grid textarea {
+  min-height: 48px;
+  resize: vertical;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width: 991px) {
+  .fee-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fee-calculation {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .assignment-basic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-basic-grid .field-group {
+    grid-column: span 1 !important;
+  }
+
+  .assignment-basic-grid .field-group:first-child {
+    grid-column: span 2 !important;
+  }
+
+  .fee-grid,
+  .location-preference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-calculation {
+    grid-column: auto;
+  }
+
+  .radio-options {
+    gap: 15px;
+  }
+}
