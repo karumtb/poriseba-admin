@@ -6,7 +6,7 @@ import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import AppHeaderDropdownAccnt from '@/components/AppHeaderDropdownAccnt.vue'
 import { useSidebarStore } from '@/stores/sidebar.js'
 
-const headerClassNames = ref('main-header mb-3 p-0')
+const headerClassNames = ref('main-header')
 const { colorMode, setColorMode } = useColorModes('coreui-free-vue-admin-template-theme')
 const sidebar = useSidebarStore()
 import {
@@ -15,9 +15,9 @@ import {
 onMounted(() => {
   document.addEventListener('scroll', () => {
     if (document.documentElement.scrollTop > 0) {
-      headerClassNames.value = 'mb-4 p-0 shadow-sm'
+      headerClassNames.value = 'sticky shadow-sm'
     } else {
-      headerClassNames.value = 'mb-4 p-0'
+      headerClassNames.value = 'header-main'
     }
   })
 })
@@ -29,6 +29,7 @@ onMounted(() => {
       <CHeaderToggler @click="sidebar.toggleVisible()" style="margin-inline-start: -14px">
         <CIcon :icon="cilMenu" size="lg" />
       </CHeaderToggler>
+      <div class="desktop-brdcm"><AppBreadcrumb /></div>
       <CHeaderNav class="d-none d-md-flex">
 
       </CHeaderNav>
@@ -38,8 +39,10 @@ onMounted(() => {
         <AppHeaderDropdownAccnt />
       </CHeaderNav>
     </CContainer>
-    <CContainer class="px-4" fluid>
-      <AppBreadcrumb />
-    </CContainer>
+    <div class="mobile-brdcm">
+      <CContainer class="px-4" fluid>
+        <AppBreadcrumb />
+      </CContainer> 
+    </div>
   </CHeader>
 </template>

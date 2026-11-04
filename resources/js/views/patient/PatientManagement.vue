@@ -87,7 +87,7 @@ const careForm = ref({
   caregiverGender: 'Any',
   serviceDetails:
     'Need elderly caregiver with post-operative care experience, mobility assistance, daily vitals support and monitoring of vitals. Caregiver should be patient, reliable and able to assist with daily activities.',
-  feeRange: '₹ 220 – 280 per hour',
+  feeRange: '₹ 220 – 280',
   additionalFacilities: ['Physiotherapy Support', 'Nursing Support'],
 });
 
@@ -314,21 +314,21 @@ onMounted(() => {
                 <span class="pb-stat-value">248</span>
                 </div>
               </div>
-              <div class="pb-stat-card stat-green">
+              <div class="pb-stat-card pb-stat-green">
                 <div class="pb-stat-icon-wrap"><CIcon :icon="cilHeart" /></div>
                 <div class="pb-stat-content">
                 <span class="pb-stat-label">Active Care</span>
                 <span class="pb-stat-value">86</span>
                 </div>
               </div>
-              <div class="pb-stat-card stat-pink">
+              <div class="pb-stat-card pb-stat-pink">
                 <div class="pb-stat-icon-wrap"><CIcon :icon="cilUser" /></div>
                 <div class="pb-stat-content">
                 <span class="pb-stat-label">Caregivers Assigned</span>
                 <span class="pb-stat-value">79</span>
                 </div>
               </div>
-              <div class="pb-stat-card stat-orange">
+              <div class="pb-stat-card pb-stat-orange">
                 <div class="pb-stat-icon-wrap"><CIcon :icon="cilClock" /></div>
                 <div class="pb-stat-content">
                 <span class="pb-stat-label">Assignment Pending</span>
@@ -395,171 +395,269 @@ onMounted(() => {
               </div>
 
               <!-- Basic Information + Contact & Address -->
-              <div v-if="activeStep === 1" class="onboarding-content onboarding-page-content">
-                <CCard class="content-card onboarding-form-card">
-                  <CCardHeader class="pb-section-title"><CIcon :icon="cilUser" /><strong>Basic Information</strong></CCardHeader>
+              <div v-if="activeStep === 1" class="pb-patient-step-content">
+                <div class="pb-patient-step-content-inr">
+                  <CCardHeader class="pb-section-title">
+                  <!-- <CIcon :icon="cilUser" /> -->
+                  <strong>Basic Information</strong></CCardHeader>
                   <CCardBody>
-                    <div class="field-grid basic-info-grid">
+                    <div class="row g-3">
+                    <div class="col-lg-4">
                       <div class="field-group"><label class="pb-label">Patient ID (Auto-generated)</label><CFormInput v-model="basicForm.patientId" size="sm" readonly /></div>
+                    </div>
+                    <div class="col-lg-4">
                       <div class="field-group"><label class="pb-label">Patient Name <span>*</span></label><CFormInput v-model="basicForm.patientName" size="sm" placeholder="Enter patient name" /></div>
+                    </div>
+                    <div class="col-lg-4">
                       <div class="field-group"><label class="pb-label">Date of Birth <span>*</span></label><CFormInput v-model="basicForm.dateOfBirth" type="date" size="sm" /></div>
+                      </div>
+                    <div class="col-lg-4">
                       <div class="field-group"><label class="pb-label">Age</label><CFormInput v-model="basicForm.age" size="sm" placeholder="-" readonly /></div>
+                      </div>
+                    <div class="col-lg-4">
                       <div class="field-group"><label class="pb-label">Gender <span>*</span></label><CFormSelect v-model="basicForm.gender" size="sm"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></CFormSelect></div>
+                      </div> 
                     </div>
                   </CCardBody>
-                </CCard>
-                <CCard class="content-card onboarding-form-card">
-                  <CCardHeader class="pb-section-title"><CIcon :icon="cilLocationPin" /><strong>Contact & Address</strong></CCardHeader>
+                </div>
+                <div class="pb-patient-step-content-inr">
+                  <CCardHeader class="pb-section-title">
+                  <!--<CIcon :icon="cilLocationPin" /> -->
+                  <strong>Contact & Address</strong></CCardHeader>
                   <CCardBody>
-                    <div class="field-grid contact-info-grid">
-                      <div class="field-group"><label class="pb-label">Primary Contact Name <span>*</span></label><CFormInput v-model="basicForm.primaryContactName" size="sm" placeholder="Enter contact name" /></div>
-                      <div class="field-group"><label class="pb-label">Relationship <span>*</span></label><CFormSelect v-model="basicForm.relationship" size="sm"><option value="">Select</option><option>Spouse</option><option>Son</option><option>Daughter</option><option>Parent</option><option>Other</option></CFormSelect></div>
-                      <div class="field-group"><label class="pb-label">Phone Number <span>*</span></label><CFormInput v-model="basicForm.phoneNumber" size="sm" placeholder="Enter phone number" /></div>
-                      <div class="field-group"><label class="pb-label">Alternate Number</label><CFormInput v-model="basicForm.alternateNumber" size="sm" placeholder="Enter alternate number" /></div>
-                      <div class="field-group address-field"><label class="pb-label">Address <span>*</span></label><textarea v-model="basicForm.address" rows="2" class="form-control" placeholder="Enter full address"></textarea></div>
-                      <div class="field-group"><label class="pb-label">Location / Area <span>*</span></label><CFormInput v-model="basicForm.locationArea" size="sm" placeholder="Select location" /></div>
-                      <div class="field-group"><label class="pb-label">City</label><CFormInput v-model="basicForm.city" size="sm" /></div>
-                      <div class="field-group"><label class="pb-label">State</label><CFormInput v-model="basicForm.state" size="sm" /></div>
-                      <div class="field-group"><label class="pb-label">PIN Code</label><CFormInput v-model="basicForm.pinCode" size="sm" placeholder="Enter PIN" /></div>
-                      <div class="field-group"><label class="pb-label">Emergency Contact Name</label><CFormInput v-model="basicForm.emergencyContactName" size="sm" placeholder="Enter name" /></div>
-                      <div class="field-group"><label class="pb-label">Relationship</label><CFormSelect v-model="basicForm.emergencyRelationship" size="sm"><option value="">Select</option><option>Spouse</option><option>Son</option><option>Daughter</option><option>Parent</option><option>Other</option></CFormSelect></div>
-                      <div class="field-group emergency-phone-field"><label class="pb-label">Emergency Phone</label><CFormInput v-model="basicForm.emergencyPhone" size="sm" placeholder="Enter phone number" /></div>
+                    <div class="row g-3">
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Primary Contact Name <span>*</span></label><CFormInput v-model="basicForm.primaryContactName" size="sm" placeholder="Enter contact name" /></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Relationship <span>*</span></label><CFormSelect v-model="basicForm.relationship" size="sm"><option value="">Select</option><option>Spouse</option><option>Son</option><option>Daughter</option><option>Parent</option><option>Other</option></CFormSelect></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Phone Number <span>*</span></label><CFormInput v-model="basicForm.phoneNumber" size="sm" placeholder="Enter phone number" /></div>
+                      </div>
+                      
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Alternate Number</label><CFormInput v-model="basicForm.alternateNumber" size="sm" placeholder="Enter alternate number" /></div>
+                        </div>
+                      
+                      <div class="col-lg-8">
+                        <div class="field-group"><label class="pb-label">Location / Area <span>*</span></label><CFormInput v-model="basicForm.locationArea" size="sm" placeholder="Select location" /></div> 
+                      </div>
+                      <div class="col-lg-12">
+                        <div class="field-group address-field"><label class="pb-label">Address <span>*</span></label><textarea v-model="basicForm.address" rows="2" class="form-control" placeholder="Enter full address"></textarea></div>
+                      </div>
+
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">City</label><CFormInput v-model="basicForm.city" size="sm" /></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">State</label><CFormInput v-model="basicForm.state" size="sm" /></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">PIN Code</label><CFormInput v-model="basicForm.pinCode" size="sm" placeholder="Enter PIN" /></div>
+                      </div>
+                      
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Emergency Contact Name</label><CFormInput v-model="basicForm.emergencyContactName" size="sm" placeholder="Enter name" /></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Relationship</label><CFormSelect v-model="basicForm.emergencyRelationship" size="sm"><option value="">Select</option><option>Spouse</option><option>Son</option><option>Daughter</option><option>Parent</option><option>Other</option></CFormSelect></div>
+                        </div>
+                      <div class="col-lg-4">
+                        <div class="field-group emergency-phone-field"><label class="pb-label">Emergency Phone</label><CFormInput v-model="basicForm.emergencyPhone" size="sm" placeholder="Enter phone number" /></div>
+                      </div>
                     </div>
                   </CCardBody>
-                </CCard>
+                </div>
               </div>
 
               <!-- Medical / Care Information -->
-              <div v-else-if="activeStep === 2" class="onboarding-content onboarding-page-content">
-                <CCard class="content-card">
-                  <CCardHeader class="pb-section-title"><CIcon :icon="cilMedicalCross" /><strong>Medical / Care Information</strong></CCardHeader>
+              <div v-else-if="activeStep === 2" class="pb-patient-step-content">
+                <div class="pb-patient-step-content-inr">
+                  <CCardHeader class="pb-section-title">
+                  <!-- <CIcon :icon="cilMedicalCross" /> -->
+                  <strong>Medical / Care Information</strong></CCardHeader>
                   <CCardBody>
-                    <div class="field-grid medical-info-grid">
-                      <div class="field-group"><label class="pb-label">Primary Diagnosis <span>*</span></label><CFormSelect v-model="medicalForm.primaryDiagnosis" size="sm"><option value="">Select diagnosis</option><option>Post-Operative Care</option><option>General Care</option><option>Diabetes</option><option>Hypertension</option></CFormSelect></div>
-                      <div class="field-group"><label class="pb-label">Secondary Diagnosis</label><CFormInput v-model="medicalForm.secondaryDiagnosis" size="sm" placeholder="Enter secondary diagnosis" /></div>
-                      <div class="field-group"><label class="pb-label">Current Health Status <span>*</span></label><CFormSelect v-model="medicalForm.healthStatus" size="sm"><option value="">Select status</option><option>Stable</option><option>Needs Monitoring</option><option>Critical</option></CFormSelect></div>
-                      <div class="field-group"><label class="pb-label">Allergies (if any)</label><CFormInput v-model="medicalForm.allergies" size="sm" placeholder="Enter allergies or None" /></div>
-                      <div class="field-group"><label class="pb-label">Chronic Conditions</label><CFormInput v-model="medicalForm.chronicConditions" size="sm" placeholder="Enter chronic conditions" /></div>
-                      <div class="field-group"><label class="pb-label">Medical History (Brief)</label><textarea v-model="medicalForm.medicalHistory" rows="3" class="form-control" placeholder="Enter medical history"></textarea></div>
-                      <div class="field-group"><label class="pb-label">Current Medications</label><textarea v-model="medicalForm.currentMedications" rows="3" class="form-control" placeholder="Enter current medications"></textarea></div>
-                      <div class="field-group"><label class="pb-label">Special Care Needs</label><textarea v-model="medicalForm.specialCareNeeds" rows="3" class="form-control" placeholder="Enter special care needs"></textarea></div>
-                      <div class="field-group"><label class="pb-label">Dietary Preferences</label><textarea v-model="medicalForm.dietaryPreferences" rows="2" class="form-control" placeholder="Enter dietary preferences"></textarea></div>
+                    <div class="row g-3 medical-info-grid">
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Primary Diagnosis <span>*</span></label><CFormSelect v-model="medicalForm.primaryDiagnosis" size="sm"><option value="">Select diagnosis</option><option>Post-Operative Care</option><option>General Care</option><option>Diabetes</option><option>Hypertension</option></CFormSelect></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Secondary Diagnosis</label><CFormInput v-model="medicalForm.secondaryDiagnosis" size="sm" placeholder="Enter secondary diagnosis" /></div>
+                      </div>
+                      <div class="col-lg-4">
+                        <div class="field-group"><label class="pb-label">Current Health Status <span>*</span></label><CFormSelect v-model="medicalForm.healthStatus" size="sm"><option value="">Select status</option><option>Stable</option><option>Needs Monitoring</option><option>Critical</option></CFormSelect></div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Allergies (if any)</label><CFormInput v-model="medicalForm.allergies" size="sm" placeholder="Enter allergies or None" /></div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Chronic Conditions</label><CFormInput v-model="medicalForm.chronicConditions" size="sm" placeholder="Enter chronic conditions" /></div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Medical History (Brief)</label><textarea v-model="medicalForm.medicalHistory" rows="3" class="form-control" placeholder="Enter medical history"></textarea></div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Current Medications</label><textarea v-model="medicalForm.currentMedications" rows="3" class="form-control" placeholder="Enter current medications"></textarea></div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Special Care Needs</label><textarea v-model="medicalForm.specialCareNeeds" rows="3" class="form-control" placeholder="Enter special care needs"></textarea></div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group"><label class="pb-label">Dietary Preferences</label><textarea v-model="medicalForm.dietaryPreferences" rows="2" class="form-control" placeholder="Enter dietary preferences"></textarea></div>
+                      </div>
                     </div>
                   </CCardBody>
-                </CCard>
+                </div>
               </div>
 
               <!-- Service Requirement page -->
-              <div v-if="activeStep === 3" class="onboarding-content">
-                <CCard class="content-card requirement-card">
+              <div v-if="activeStep === 3" class="pb-patient-step-content">
+                <div class="pb-patient-step-content-inr">
                   <CCardHeader class="pb-section-title">
-                    <CIcon :icon="cilMedicalCross" />
+                    <!-- <CIcon :icon="cilMedicalCross" /> -->
                     <strong>Service Requirement</strong>
                   </CCardHeader>
                   <CCardBody>
-                    <div class="field-grid">
-                      <div class="field-group">
-                        <label class="pb-label">Care Type <span>*</span></label>
-                        <CFormSelect v-model="careForm.careType" size="sm">
-                          <option>Elderly Care</option>
-                          <option>Patient Care</option>
-                          <option>Post-Surgical Care</option>
-                        </CFormSelect>
-                      </div>
-                      <div class="field-group">
-                        <label class="pb-label">Service Category</label>
-                        <CFormSelect v-model="careForm.serviceCategory" size="sm">
-                          <option>Post-Operative Care</option>
-                          <option>General Nursing</option>
-                          <option>Daily Living Assistance</option>
-                        </CFormSelect>
-                      </div>
-                      <div class="field-group">
-                        <label class="pb-label">Care Start Date <span>*</span></label>
-                        <div class="input-with-icon">
-                          <CFormInput v-model="careForm.startDate" type="date" size="sm" />
-                          <CIcon :icon="cilCalendar" />
-                        </div>
-                      </div>
-                      <div class="field-group">
-                        <label class="pb-label">Expected Duration <span>*</span></label>
-                        <div class="duration-field">
-                          <CFormInput v-model.number="careForm.duration" type="number" min="1" size="sm" />
-                          <CFormSelect v-model="careForm.durationUnit" size="sm">
-                            <option>Months</option>
-                            <option>Weeks</option>
-                            <option>Days</option>
+                    <div class="row g-3">
+                      <div class="col-lg-4 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Care Type <span>*</span></label>
+                          <CFormSelect v-model="careForm.careType" size="sm">
+                            <option>Elderly Care</option>
+                            <option>Patient Care</option>
+                            <option>Post-Surgical Care</option>
                           </CFormSelect>
                         </div>
                       </div>
-                      <div class="field-group full-field">
-                        <label class="pb-label">Duty Hours <span>*</span></label>
-                        <div class="radio-pills">
-                          <label
-                            v-for="hour in ['8 Hours', '12 Hours', '24 Hours', 'Custom']"
-                            :key="hour"
-                            :class="{ chosen: careForm.dutyHours === hour }">
-                            <input v-model="careForm.dutyHours" type="radio" :value="hour" />
-                            {{ hour }}
-                          </label>
+                      
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Care Start Date <span>*</span></label>
+                          <div class="input-with-icon">
+                            <CFormInput v-model="careForm.startDate" type="date" size="sm" />
+                            <CIcon :icon="cilCalendar" />
+                          </div>
                         </div>
                       </div>
-                      <div class="field-group">
-                        <label class="pb-label">Service Location <span>*</span></label>
-                        <CFormSelect v-model="careForm.serviceLocation" size="sm">
-                          <option>Home (Patient Residence)</option>
-                          <option>Hospital</option>
-                          <option>Care Facility</option>
-                        </CFormSelect>
-                      </div>
-                      <div class="field-group">
-                        <label class="pb-label">Location / Area</label>
-                        <CFormInput v-model="careForm.locationArea" size="sm" />
-                      </div>
-                      <div class="field-group">
-                        <label class="pb-label">City</label>
-                        <CFormInput v-model="careForm.locationCity" size="sm" />
-                      </div>
-                      <div class="field-group full-field">
-                        <label class="pb-label">Preferred Caregiver Gender</label>
-                        <div class="radio-pills compact">
-                          <label
-                            v-for="gender in ['Any', 'Male', 'Female']"
-                            :key="gender"
-                            :class="{ chosen: careForm.caregiverGender === gender }">
-                            <input v-model="careForm.caregiverGender" type="radio" :value="gender" />
-                            {{ gender }}
-                          </label>
+                      <div class="col-lg-5 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Expected Duration <span>*</span></label>
+                          <div class="duration-field">
+                            <CFormInput v-model.number="careForm.duration" type="number" min="1" size="sm" />
+                            <CFormSelect v-model="careForm.durationUnit" size="sm">
+                              <option>Months</option>
+                              <option>Weeks</option>
+                              <option>Days</option>
+                            </CFormSelect>
+                          </div>
                         </div>
                       </div>
+                      <div class="col-lg-12">
+                        <div class="field-group full-field">
+                          <label class="pb-label">Duty Hours <span>*</span></label>
+                          <div class="radio-pills">
+                            <label
+                              v-for="hour in ['8 Hours', '12 Hours', '24 Hours', 'Custom']"
+                              :key="hour"
+                              :class="{ chosen: careForm.dutyHours === hour }">
+                              <input v-model="careForm.dutyHours" type="radio" :value="hour" />
+                              <span class="custom-radio-span">{{ hour }}</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Service Category</label>
+                          <CFormSelect v-model="careForm.serviceCategory" size="sm">
+                            <option>Post-Operative Care</option>
+                            <option>General Nursing</option>
+                            <option>Daily Living Assistance</option>
+                          </CFormSelect>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Service Location <span>*</span></label>
+                          <CFormSelect v-model="careForm.serviceLocation" size="sm">
+                            <option>Home (Patient Residence)</option>
+                            <option>Hospital</option>
+                            <option>Care Facility</option>
+                          </CFormSelect>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Location / Area</label>
+                          <CFormInput v-model="careForm.locationArea" size="sm" />
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">City</label>
+                          <CFormInput v-model="careForm.locationCity" size="sm" />
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="field-group full-field">
+                          <label class="pb-label">Preferred Caregiver Gender</label>
+                          <div class="radio-pills compact">
+                            <label
+                              v-for="gender in ['Any', 'Male', 'Female']"
+                              :key="gender"
+                              :class="{ chosen: careForm.caregiverGender === gender }">
+                              <input v-model="careForm.caregiverGender" type="radio" :value="gender" />
+                              <span>{{ gender }}</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div> 
                     </div>
                   </CCardBody>
-                </CCard>
+                </div>
 
-                <CCard class="content-card details-card">
+                <div class="pb-patient-step-content-inr">
                   <CCardHeader class="pb-section-title">
-                    <CIcon :icon="cilFile" />
+                    <!-- <CIcon :icon="cilFile" /> -->
                     <strong>Service Details & Instructions</strong>
                   </CCardHeader>
                   <CCardBody>
-                    <div class="field-group">
-                      <textarea v-model="careForm.serviceDetails" rows="4" class="form-control details-textarea"></textarea>
+                    <div class="row g-4">
+                      <div class="col-lg-6">
+                        <div class="field-group">
+                          <textarea v-model="careForm.serviceDetails" rows="4" class="form-control details-textarea"></textarea>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                          <div class="fee-box">
+                            <div class="pb-fee-config-header">
+                              <div class="pb-fee-config-title">Expected Caregiver Fee Range (Optional)</div>
+                            </div>
+                            <div class="pb-fee-config-body">
+                              <div class="pb-fee-amount-badge fs-4 mb-1">
+                                {{ careForm.feeRange }} 
+                                <span class="fs-6 fw-normal text-muted ms-1">per hour</span>
+                              </div>
+                              <div class="pb-fee-calc-text">Based on service type and market rate.</div>
+                            </div>
+                          </div> 
+                      </div>
+                      <div class="col-lg-12">
+                          <div class="facilities-title">Additional Facilities (if any)</div>
+                          <div class="facility-option-row">
+                              <label
+                                v-for="facility in ['Physiotherapy Support', 'Nursing Support', 'Dialysis Support', 'Medical Visit Coordination']"
+                                :key="facility"
+                                class="facility-option">
+                                <input v-model="careForm.additionalFacilities" type="checkbox" :value="facility" />
+                                <span>{{ facility }}</span>
+                              </label>
+                          </div>
+                      </div>
                     </div>
-                    <div class="fee-box">
-                      <span>Expected Caregiver Fee Range (Optional)</span>
-                      <strong>{{ careForm.feeRange }}</strong>
-                      <small>Based on service type and market rate.</small>
-                    </div>
-                    <div class="facilities-title">Additional Facilities (if any)</div>
-                    <label
-                      v-for="facility in ['Physiotherapy Support', 'Nursing Support', 'Dialysis Support', 'Medical Visit Coordination']"
-                      :key="facility"
-                      class="facility-option">
-                      <input v-model="careForm.additionalFacilities" type="checkbox" :value="facility" />
-                      <span>{{ facility }}</span>
-                    </label>
                   </CCardBody>
-                </CCard>
+                </div>
 
 
               </div>
@@ -567,50 +665,96 @@ onMounted(() => {
 
 
               <!-- Consent & Documents: blank placeholder as requested -->
-              <div v-else-if="activeStep === 4" class="onboarding-content onboarding-page-content consent-documents-page">
-                <CCard class="content-card consent-empty-card">
-                  <CCardHeader class="pb-section-title"><CIcon :icon="cilFile" /><strong>Consent & Documents</strong></CCardHeader>
-                  <CCardBody><!-- Consent and document fields will be added later. --></CCardBody>
-                </CCard>
+              <div v-else-if="activeStep === 4" class="pb-patient-step-content consent-documents-page">
+                <div class="pb-patient-step-content-inr consent-empty-card">
+                  <CCardHeader class="pb-section-title">
+                    <!-- <CIcon :icon="cilFile" /> -->
+                    <strong>Consent & Documents</strong>
+                  </CCardHeader>
+                  <CCardBody>Consent and document fields will be added later.</CCardBody>
+                </div>
               </div>
 
               <!-- Review & Onboard -->
-              <div v-else-if="activeStep === 5" class="onboarding-content onboarding-page-content review-page-content">
-                <CCard class="content-card">
-                  <CCardHeader class="pb-section-title"><CIcon :icon="cilCheckCircle" /><strong>Review & Onboard</strong></CCardHeader>
+              <div v-else-if="activeStep === 5" class="pb-patient-step-content review-page-content">
+                <div class="pb-patient-step-content-inr">
+                  <CCardHeader class="pb-section-title">
+                  <!-- <CIcon :icon="cilCheckCircle" /> -->
+                  <strong>Review & Onboard</strong></CCardHeader>
                   <CCardBody>
-                    <div class="review-section"><h3>Basic Information & Contact</h3>
-                      <div class="review-grid">
-                        <p><span>Patient ID</span><strong>{{ basicForm.patientId }}</strong></p>
-                        <p><span>Patient Name</span><strong>{{ basicForm.patientName || '-' }}</strong></p>
-                        <p><span>Date of Birth</span><strong>{{ basicForm.dateOfBirth || '-' }}</strong></p>
-                        <p><span>Gender</span><strong>{{ basicForm.gender || '-' }}</strong></p>
-                        <p><span>Primary Contact</span><strong>{{ basicForm.primaryContactName || '-' }}</strong></p>
-                        <p><span>Phone Number</span><strong>{{ basicForm.phoneNumber || '-' }}</strong></p>
-                        <p><span>Address</span><strong>{{ basicForm.address || '-' }}</strong></p>
-                        <p><span>Location</span><strong>{{ [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') || '-' }}</strong></p>
-                      </div>
-                    </div>
-                    <div class="review-section"><h3>Medical / Care Information</h3>
-                      <div class="review-grid">
-                        <p><span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong></p>
-                        <p><span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong></p>
-                        <p><span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong></p>
-                        <p><span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong></p>
-                      </div>
-                    </div>
-                    <div class="review-section"><h3>Service Requirement</h3>
-                      <div class="review-grid">
-                        <p><span>Care Type</span><strong>{{ careForm.careType }}</strong></p>
-                        <p><span>Service Category</span><strong>{{ careForm.serviceCategory }}</strong></p>
-                        <p><span>Start Date</span><strong>{{ careForm.startDate }}</strong></p>
-                        <p><span>Duration</span><strong>{{ careForm.duration }} {{ careForm.durationUnit }}</strong></p>
-                        <p><span>Duty Hours</span><strong>{{ careForm.dutyHours }}</strong></p>
-                        <p><span>Service Location</span><strong>{{ careForm.serviceLocation }}</strong></p>
-                      </div>
-                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                          <div class="pb-shadow-box h-100">
+                            <div class="pb-shadow-box-header pb-box-header-blue">
+                              <span>Basic Information & Contact</span>
+                            </div>
+                            <div class="pb-shadow-box-body">
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Patient ID</span>
+                                <span class="pb-kv-value">{{ basicForm.patientId }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Patient Name</span>
+                                <span class="pb-kv-value">{{ basicForm.patientName || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Date of Birth</span>
+                                <span class="pb-kv-value">{{ basicForm.dateOfBirth || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Gender</span>
+                                <span class="pb-kv-value">{{ basicForm.gender || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Primary Contact</span>
+                                <span class="pb-kv-value">{{ basicForm.primaryContactName || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Phone Number</span>
+                                <span class="pb-kv-value">{{ basicForm.phoneNumber || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                <span class="pb-kv-label">Address</span>
+                                <span class="pb-kv-value">{{ basicForm.address || '-' }}</span>
+                              </div>
+                              <div class="pb-kv-row">
+                                  <span class="pb-kv-label">Location</span>
+                                  <span class="pb-kv-value">{{ [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') || '-' }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-4">
+                          <div class="pb-shadow-box h-100">
+                           <div class="pb-shadow-box-header pb-box-header-red">
+                              <span>Medical / Care Information</span>
+                            </div> 
+                            <div class="pb-shadow-box-body">
+                              <div class="pb-kv-row"><span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong></div>
+                              <div class="pb-kv-row"><span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong></div>
+                              <div class="pb-kv-row"><span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong></div>
+                              <div class="pb-kv-row"><span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong></div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-4">
+                          <div class="pb-shadow-box  h-100">
+                            <div class="pb-shadow-box-header pb-box-header-green">
+                              <span>Service Requirement</span>
+                            </div>
+                            <div class="pb-shadow-box-body">
+                              <div class="pb-kv-row"><span>Care Type</span><strong>{{ careForm.careType }}</strong></div>
+                              <div class="pb-kv-row"><span>Service Category</span><strong>{{ careForm.serviceCategory }}</strong></div>
+                              <div class="pb-kv-row"><span>Start Date</span><strong>{{ careForm.startDate }}</strong></div>
+                              <div class="pb-kv-row"><span>Duration</span><strong>{{ careForm.duration }} {{ careForm.durationUnit }}</strong></div>
+                              <div class="pb-kv-row"><span>Duty Hours</span><strong>{{ careForm.dutyHours }}</strong></div>
+                              <div class="pb-kv-row"><span>Service Location</span><strong>{{ careForm.serviceLocation }}</strong></div>
+                            </div>
+                          </div>
+                        </div>
+                    </div>    
                   </CCardBody>
-                </CCard>
+                </div>
               </div>
               <div class="form-footer">
                 <CButton color="light" variant="outline" class="back-button" @click="previousStep">
@@ -629,17 +773,19 @@ onMounted(() => {
             </section>
 
             <!-- Requests table -->
-            <section class="requests-panel">
-              <div class="requests-heading">
-                <div class="requests-title">
-                  <CIcon :icon="cilLayers" />
-                  <div>
-                    <h2>Additional Services & Requests</h2>
-                    <p>
-                      Manage multiple service requests for this patient (e.g. caregiver replacement, ambulance, consumables, and other
-                      services)
-                    </p>
-                  </div>
+            <section class="onboarding-panel">
+              <div class="pb-card-header">
+                <div class="pb-card-header-left">
+                    <div class="pb-card-icon">
+                      <CIcon :icon="cilLayers" />
+                    </div>
+                    <div>
+                      <h2 class="pb-card-title">Additional Services & Requests</h2>
+                      <p class="pb-card-desc">
+                        Manage multiple service requests for this patient (e.g. caregiver replacement, ambulance, consumables, and other
+                        services)
+                      </p>
+                    </div> 
                 </div>
                 <CButton color="primary" class="add-request-button" @click="showAddRequest = !showAddRequest">
                   <CIcon :icon="cilPlus" /> Add Service Request
@@ -683,12 +829,8 @@ onMounted(() => {
               </div>
 
               <div class="table-toolbar">
-                <span
-                  >Showing {{ filteredRequests.length ? (currentPage - 1) * rowsPerPage + 1 : 0 }} to
-                  {{ Math.min(currentPage * rowsPerPage, filteredRequests.length) }} of {{ filteredRequests.length }} records</span
-                >
-                <div class="table-toolbar-right">
-                  <div class="request-search">
+               
+                <div class="request-search">
                     <CIcon :icon="cilSearch" />
                     <input
                       v-model="searchText"
@@ -696,6 +838,11 @@ onMounted(() => {
                       placeholder="Search service requests..."
                       aria-label="Search service requests" />
                   </div>
+                  <div class="table-toolbar-right">
+                    <span
+                    >Showing {{ filteredRequests.length ? (currentPage - 1) * rowsPerPage + 1 : 0 }} to
+                    {{ Math.min(currentPage * rowsPerPage, filteredRequests.length) }} of {{ filteredRequests.length }} records</span
+                  >
                   <label class="pb-label">Rows</label>
                   <CFormSelect v-model.number="rowsPerPage" size="sm" class="rows-select" @change="currentPage = 1">
                     <option :value="5">5</option>
@@ -710,7 +857,7 @@ onMounted(() => {
                   <template #empty>
                     <div class="empty-state">No service requests found.</div>
                   </template>
-                  <Column header="#" headerStyle="width: 42px">
+                  <Column header="#" headerStyle="width: 34px">
                     <template #body="{ index }">
                       {{ (currentPage - 1) * rowsPerPage + index + 1 }}
                     </template>

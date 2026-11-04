@@ -1,5 +1,5 @@
 <template>
-  <CFooter class="px-4">
+  <CFooter class="px-4 footer-copyright">
     <div>
 
       <span class="ms-1"
