@@ -72,7 +72,7 @@ const routes = [
       {
         path: 'caregiver/assignment',
         name: 'Caregiver Assignment',
-        component: () => import('@/views/patient/PatientManagement.vue'),
+        component: () => import('@/views/caregiver/CaregiverAssignment.vue'),
       },
     ],
   },

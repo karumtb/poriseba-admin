@@ -337,5 +337,3 @@ onMounted(() => {
     </CCol>
   </CRow>
 </template>
-
-<style scoped></style>
