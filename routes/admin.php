@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\EnrolmentController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PatientController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -22,9 +23,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/remove', [UserController::class, 'delete']);
             Route::post('/search', [UserController::class, 'search']);
             Route::post('/status/toggle', [UserController::class, 'toogleStatus']);
-
         });
+        Route::prefix('patients')->group(function () {
 
+            // Add Patient
+            Route::post('/save', [PatientController::class, 'store']);
+            Route::post('/index', [PatientController::class, 'index']);
+
+            // Get Patient Details for Edit
+
+            // Update Patient
+        });
         Route::post('/subscription-plan/save', [SubscriptionPlanController::class, 'save']);
         Route::post('/subscription-plan/index', [SubscriptionPlanController::class, 'index']);
         Route::post('/subscription-plan/status/toggle', [SubscriptionPlanController::class, 'toogleStatus']);
@@ -33,28 +42,23 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     // Hospital Role Restricted Routes
     Route::middleware('role:admin')->group(function () {
-    Route::post('/enrolment/bulk-approve', [EnrolmentController::class, 'bulkApprove']);
-    Route::post('/hiring-request/approve', [EnrolmentController::class, 'bulkApproveHiring']);
-    Route::post('/enrolment/release', [EnrolmentController::class, 'releaseEnrolment']);
-
-
+        Route::post('/enrolment/bulk-approve', [EnrolmentController::class, 'bulkApprove']);
+        Route::post('/hiring-request/approve', [EnrolmentController::class, 'bulkApproveHiring']);
+        Route::post('/enrolment/release', [EnrolmentController::class, 'releaseEnrolment']);
     });
 
     Route::middleware('role:admin,vendor,hospital')->group(function () {
-      Route::post('/enrolment/listing', [EnrolmentController::class, 'index']);
-      Route::post('/designation/listing', [DesignationController::class, 'listing']);
-      Route::post('/enrolment/view', [EnrolmentController::class, 'view']);
-
-
+        Route::post('/enrolment/listing', [EnrolmentController::class, 'index']);
+        Route::post('/designation/listing', [DesignationController::class, 'listing']);
+        Route::post('/enrolment/view', [EnrolmentController::class, 'view']);
     });
-     Route::middleware('role:admin,vendor')->group(function () {
+    Route::middleware('role:admin,vendor')->group(function () {
         Route::post('/enrolment/save', [EnrolmentController::class, 'save']);
         Route::post('/enrolment/remove', [EnrolmentController::class, 'destroy']);
         Route::post('/enrolment/status/toggle', [EnrolmentController::class, 'toogleStatus']);
     });
     Route::middleware('role:hospital')->group(function () {
-    Route::post('/enrolment/hiring', [EnrolmentController::class, 'bulkHiringRequest']);
-
+        Route::post('/enrolment/hiring', [EnrolmentController::class, 'bulkHiringRequest']);
     });
 
     // Authenticated users
