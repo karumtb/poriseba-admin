@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, reactive, nextTick } from 'vue';
 import { PATIENT_DROPDOWNS } from '@/constants/patientDropdowns';
 import { indianStates } from '@/constants/indianStates';
 import { useFormBuilder } from '@/form/useFormBuilder';
@@ -11,8 +11,11 @@ import { CRow, CCol, CCard, CCardHeader, CCardBody, CButton, CFormInput, CFormSe
 import CIcon from '@coreui/icons-vue';
 import { CDatePicker } from '@coreui/vue-pro';
 import { useToast } from 'vue-toastification';
+import api from '@/services/adminAxios';
 const toast = useToast();
 import moment from 'moment';
+import { loadingStore } from '@/services/loading';
+
 import {
   cilPeople,
   cilHeart,
@@ -56,7 +59,7 @@ const props = defineProps({
 | Later, replace these refs with API/service calls.
 |--------------------------------------------------------------------------
 */
-
+const patients = ref([]);
 const activeSidebar = ref('Patient Management');
 const activeSubmenu = ref('Patient Onboarding');
 const activeStep = ref(1);
@@ -74,14 +77,32 @@ const medicalReportsInput = ref(null);
 const consentFormInput = ref(null);
 const privacyDocumentInput = ref(null);
 const documentValidationAttempted = ref(false);
+const btnLoading = ref(false);
+const serverErrors = ref({});
+const editingPatientId = ref(null);
+const currentServiceRequirementId = ref(null);
+const existingFiles = reactive({ photo: null, id_proof: null, medical_reports: null, consent_form: null, privacy_document: null });
+const onboardingPanel = ref(null);
+const totalRecords = ref(0);
 
 // Allowed file types and maximum upload size (MB)
 const allowedPhotoTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 const allowedIdentityTypes = ['application/pdf', ...allowedPhotoTypes];
 const allowedMedicalReportTypes = ['application/pdf', ...allowedPhotoTypes];
 const allowedPdfTypes = ['application/pdf'];
-const maxDocumentSize = 1;
+const loading = computed(() => loadingStore.loading);
 
+const maxDocumentSize = 1;
+const lazyParams = ref({
+  first: 0,
+  rows: 10,
+  page: 0,
+});
+const defaultFilters = {
+  keyword: null,
+};
+
+const filters = reactive({ ...defaultFilters });
 // Profile photo
 const {
   file: photoFile,
@@ -145,12 +166,19 @@ const patientInitials = computed(() => {
   if (!name) return 'SD';
 
   return name
-    .split(/\\s+/)
+    .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('');
 });
+
+const isEditMode = computed(() => editingPatientId.value !== null);
+const photoDisplayUrl = computed(() => photoPreviewUrl.value || existingFiles.photo);
+const idProofDisplayUrl = computed(() => idProofPreviewUrl.value || existingFiles.id_proof);
+const medicalReportsDisplayUrl = computed(() => medicalReportsPreviewUrl.value || existingFiles.medical_reports);
+const consentFormDisplayUrl = computed(() => consentFormPreviewUrl.value || existingFiles.consent_form);
+const privacyDocumentDisplayUrl = computed(() => privacyDocumentPreviewUrl.value || existingFiles.privacy_document);
 
 /*
 |--------------------------------------------------------------------------
@@ -231,7 +259,7 @@ const {
     required: true,
     message: 'Location / Area is required',
   },
-  city: { default: null, reqnulluired: true, message: 'City is required' },
+  city: { default: '', required: true, message: 'City is required' },
   state: { default: null, required: true, message: 'State is required' },
   pinCode: {
     default: null,
@@ -433,22 +461,14 @@ watch(
     const dob = basicForm.dateOfBirth;
     const dobMoment = dob ? moment(dob) : null;
     const calculatedAge =
-      dobMoment && dobMoment.isValid() && !dobMoment.isAfter(moment(), 'day')
-        ? moment().diff(dobMoment, 'years')
-        : null;
+      dobMoment && dobMoment.isValid() && !dobMoment.isAfter(moment(), 'day') ? moment().diff(dobMoment, 'years') : null;
 
     patient.value = {
       ...patient.value,
       name: basicForm.patientName || null,
-      age: basicForm.age !== '' && basicForm.age !== null
-        ? basicForm.age
-        : calculatedAge,
+      age: basicForm.age !== '' && basicForm.age !== null ? basicForm.age : calculatedAge,
       gender: basicForm.gender || null,
-      location: [
-        basicForm.locationArea,
-        basicForm.city,
-        basicForm.state,
-      ].filter(Boolean).join(', ') || null,
+      location: [basicForm.locationArea, basicForm.city, basicForm.state].filter(Boolean).join(', ') || null,
     };
   },
   { immediate: true }
@@ -472,6 +492,7 @@ const applyBackendPatientResponse = (response) => {
 };
 
 const steps = ['Basic Info & Contact', 'Medical/Care Information', 'Service Requirement', 'Consent & Documents', 'Review & Onboard'];
+const reviewStepTitle = computed(() => (isEditMode.value ? 'Review & Update' : 'Review & Onboard'));
 
 const stepDescriptions = [
   'Enter basic information, contact and address details',
@@ -550,21 +571,19 @@ const filteredRequests = computed(() => {
   return rows;
 });
 
-const visibleRequests = computed(() => {
-  const start = (currentPage.value - 1) * rowsPerPage.value;
-  return filteredRequests.value.slice(start, start + rowsPerPage.value);
-});
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredRequests.value.length / rowsPerPage.value)));
-
 const setRequestTab = (tab) => {
   activeRequestTab.value = tab;
   currentPage.value = 1;
 };
 
 const goToStep = (step) => {
-  // Do not allow skipping ahead. Users can revisit completed steps,
-  // but must use Continue to move forward one step at a time.
+  // In edit mode, allow the user to jump directly to any onboarding tab.
+  // In create mode, retain the existing sequential navigation behaviour.
+  if (isEditMode.value) {
+    if (step >= 1 && step <= steps.length) activeStep.value = step;
+    return;
+  }
+
   if (step >= 1 && step <= activeStep.value) {
     activeStep.value = step;
   }
@@ -578,16 +597,16 @@ const validateDocuments = () => {
   documentValidationAttempted.value = true;
 
   return Boolean(
-    photoPreviewUrl.value &&
-    idProofPreviewUrl.value &&
-    medicalReportsPreviewUrl.value &&
-    consentFormPreviewUrl.value &&
-    privacyDocumentPreviewUrl.value
+    photoDisplayUrl.value &&
+    idProofDisplayUrl.value &&
+    medicalReportsDisplayUrl.value &&
+    consentFormDisplayUrl.value &&
+    privacyDocumentDisplayUrl.value
   );
 };
 
-const nextStep = () => {
-  // Validate only the current form section before allowing the user to continue.
+const nextStep = async () => {
+  // Validate only the current section before moving forward.
   if (activeStep.value === 1 && !validateBasic()) return;
   if (activeStep.value === 2 && !validateMedical()) return;
   if (activeStep.value === 3 && !validateCare()) return;
@@ -595,17 +614,359 @@ const nextStep = () => {
 
   if (activeStep.value < steps.length) {
     activeStep.value += 1;
-  } else {
-    toast.success('Static demo: patient onboarding review is complete.');
+    return;
   }
+
+  await submitPatient();
 };
 
 const triggerDocumentUpload = (inputElement) => {
   inputElement?.click();
 };
 
+// Convert Date objects and date-like values to Laravel's YYYY-MM-DD format.
+const formatApiDate = (value) => {
+  if (!value) return '';
+  const parsed = moment(value);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : String(value);
+};
+
+// Build the request using the exact snake_case names expected by Laravel.
+const buildPatientFormData = () => {
+  const payload = new FormData();
+
+  if (editingPatientId.value) payload.append('id', String(editingPatientId.value));
+  if (currentServiceRequirementId.value) payload.append('current_service_requirement_id', String(currentServiceRequirementId.value));
+
+  const fields = {
+    patient_name: basicForm.patientName,
+    date_of_birth: formatApiDate(basicForm.dateOfBirth),
+    gender: basicForm.gender,
+
+    primary_contact_name: basicForm.primaryContactName,
+    relationship: basicForm.relationship,
+    phone_number: basicForm.phoneNumber,
+    alternate_number: basicForm.alternateNumber,
+    location_area: basicForm.locationArea,
+    address: basicForm.address,
+    city: basicForm.city,
+    state: basicForm.state,
+    pin_code: basicForm.pinCode,
+
+    emergency_contact_name: basicForm.emergencyContactName,
+    emergency_relationship: basicForm.emergencyRelationship,
+    emergency_phone: basicForm.emergencyPhone,
+
+    primary_diagnosis: medicalForm.primaryDiagnosis,
+    secondary_diagnosis: medicalForm.secondaryDiagnosis,
+    health_status: medicalForm.healthStatus,
+    allergies: medicalForm.allergies,
+    chronic_conditions: medicalForm.chronicConditions,
+    medical_history: medicalForm.medicalHistory,
+    current_medications: medicalForm.currentMedications,
+    special_care_needs: medicalForm.specialCareNeeds,
+    dietary_preferences: medicalForm.dietaryPreferences,
+
+    care_type: careForm.careType,
+    care_start_date: formatApiDate(careForm.startDate),
+    duration: careForm.duration,
+    duration_unit: careForm.durationUnit,
+    duty_hours: careForm.dutyHours,
+    service_category: careForm.serviceCategory,
+    service_location: careForm.serviceLocation,
+    service_location_area: careForm.locationArea,
+    service_city: careForm.locationCity,
+    caregiver_gender: careForm.caregiverGender,
+    service_details: careForm.serviceDetails,
+    expected_fee_range: careForm.feeRange,
+  };
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      payload.append(key, String(value));
+    }
+  });
+
+  // Laravel receives this as an array: additional_facilities.
+  (careForm.additionalFacilities || []).forEach((facility) => {
+    payload.append('additional_facilities[]', facility);
+  });
+
+  // Attach the actual File objects, not their preview URLs.
+  const files = {
+    photo: photoFile.value,
+    id_proof: idProofFile.value,
+    medical_reports: medicalReportsFile.value,
+    consent_form: consentFormFile.value,
+    privacy_document: privacyDocumentFile.value,
+  };
+
+  Object.entries(files).forEach(([key, file]) => {
+    if (file instanceof File) {
+      payload.append(key, file, file.name);
+    }
+  });
+
+  return payload;
+};
+
+const submitPatient = async () => {
+  // Final safety check before sending the request.
+  const basicValid = validateBasic();
+  const medicalValid = validateMedical();
+  const careValid = validateCare();
+  const documentsValid = validateDocuments();
+
+  if (!basicValid || !medicalValid || !careValid || !documentsValid) {
+    if (!basicValid) activeStep.value = 1;
+    else if (!medicalValid) activeStep.value = 2;
+    else if (!careValid) activeStep.value = 3;
+    else activeStep.value = 4;
+
+    toast.error('Please complete all required fields and documents.');
+    return;
+  }
+
+  btnLoading.value = true;
+  serverErrors.value = {};
+
+  try {
+    const formData = buildPatientFormData();
+
+    const response = await api.post('/patients/save', formData);
+
+    const responseData = response?.data || {};
+
+    if (responseData.status === false || responseData.success === false) {
+      toast.error(responseData.message || 'Unable to save patient.');
+      return;
+    }
+
+    applyBackendPatientResponse(responseData);
+    toast.success(responseData.message || (isEditMode.value ? 'Patient updated successfully.' : 'Patient enrolled successfully.'));
+
+    resetPatientForm();
+    await getPatients();
+  } catch (error) {
+    const responseData = error?.response?.data;
+
+    if (error?.response?.status === 422 && responseData?.errors) {
+      serverErrors.value = responseData.errors;
+
+      const firstError = Object.values(responseData.errors).flat()[0];
+      toast.error(firstError || responseData.message || 'Please check the form fields.');
+    } else {
+      toast.error(responseData?.message || error?.message || 'Something went wrong while saving the patient.');
+    }
+
+    console.error('Patient enrolment error:', error);
+  } finally {
+    btnLoading.value = false;
+  }
+};
+const getPatients = async () => {
+  try {
+    const page = lazyParams.value.page + 1;
+
+    const response = await api.post('/patients/index', {
+      page: page,
+      per_page: lazyParams.value.rows,
+      ...filters,
+    });
+
+    const result = response.data.data;
+
+    patients.value = result.data;
+
+    totalRecords.value = result.total;
+  } catch (error) {
+    console.error('Enrolment Error:', error);
+  } finally {
+  }
+};
+const onPage = (event) => {
+  first.value = event.first;
+  lazyParams.value = {
+    first: event.first,
+    rows: event.rows,
+    page: event.page,
+  };
+
+  getPatients();
+};
+const searchFilters = () => {
+  lazyParams.value.page = 0;
+  getPatients();
+};
+
+const resetFilters = () => {
+  lazyParams.value.page = 0;
+  Object.assign(filters, defaultFilters);
+  getPatients();
+};
+
+// Clear all form fields and uploaded files after a successful save.
+const resetPatientForm = () => {
+  resetBasic();
+  resetMedical();
+  resetCare();
+
+  clearPhotoFile(photoInput.value);
+  clearIdProofFile(idProofInput.value);
+  clearMedicalReportsFile(medicalReportsInput.value);
+  clearConsentFormFile(consentFormInput.value);
+  clearPrivacyDocumentFile(privacyDocumentInput.value);
+
+  documentValidationAttempted.value = false;
+  serverErrors.value = {};
+  editingPatientId.value = null;
+  currentServiceRequirementId.value = null;
+  Object.keys(existingFiles).forEach((key) => {
+    existingFiles[key] = null;
+  });
+  activeStep.value = 1;
+
+  patient.value = {
+    code: null,
+    name: null,
+    age: null,
+    gender: null,
+    location: null,
+    status: null,
+    progress: 0,
+  };
+
+  // Clear native file input values as well.
+  [photoInput.value, idProofInput.value, medicalReportsInput.value, consentFormInput.value, privacyDocumentInput.value].forEach((input) => {
+    if (input) input.value = '';
+  });
+};
+const viewPatient = async (id) => {
+  try {
+    const response = await api.post('/patients/view', { id });
+    const patientRecord = response?.data?.data?.patient;
+    if (!patientRecord) return toast.error('Patient details not found.');
+    // Keep the existing listing unchanged; show the fetched details in the form's review state.
+    await editPatient(id);
+    activeStep.value = 5;
+  } catch (error) {
+    toast.error(error?.response?.data?.message || 'Unable to fetch patient details.');
+  }
+};
+
+const editPatient = async (id) => {
+  try {
+    const response = await api.post('/patients/view', { id }, { headers: { Accept: 'application/json' } });
+    const result = response?.data?.data || {};
+    const record = result.patient || {};
+    const service = result.current_service_requirement || record.current_service_requirement || null;
+    const files = result.files || {};
+    if (!record.id) {
+      toast.error('Patient details not found.');
+      return;
+    }
+
+    editingPatientId.value = record.id;
+    currentServiceRequirementId.value = service?.id || record.current_service_requirement_id || null;
+
+    patchBasicValue({
+      patientName: record.patient_name || '',
+      dateOfBirth: record.date_of_birth ? new Date(record.date_of_birth) : '',
+      age: record.age ?? '',
+      gender: record.gender || '',
+      primaryContactName: record.primary_contact_name || '',
+      relationship: record.relationship || '',
+      phoneNumber: record.phone_number || '',
+      alternateNumber: record.alternate_number || '',
+      locationArea: record.location_area || '',
+      address: record.address || '',
+      city: record.city || '',
+      state: record.state || '',
+      pinCode: record.pin_code || '',
+      emergencyContactName: record.emergency_contact_name || '',
+      emergencyRelationship: record.emergency_relationship || '',
+      emergencyPhone: record.emergency_phone || '',
+    });
+
+    patchMedicalValue({
+      primaryDiagnosis: record.primary_diagnosis || '',
+      secondaryDiagnosis: record.secondary_diagnosis || '',
+      healthStatus: record.health_status || '',
+      allergies: record.allergies || '',
+      chronicConditions: record.chronic_conditions || '',
+      medicalHistory: record.medical_history || '',
+      currentMedications: record.current_medications || '',
+      specialCareNeeds: record.special_care_needs || '',
+      dietaryPreferences: record.dietary_preferences || '',
+    });
+
+    if (service) {
+      patchCareValue({
+        careType: service.care_type || '',
+        serviceCategory: service.service_category || '',
+        startDate: service.care_start_date ? new Date(service.care_start_date) : '',
+        duration: service.duration ?? '',
+        durationUnit: service.duration_unit || '',
+        dutyHours: service.duty_hours || '',
+        serviceLocation: service.service_location || '',
+        locationArea: service.service_location_area || '',
+        locationCity: service.service_city || '',
+        caregiverGender: service.caregiver_gender || '',
+        serviceDetails: service.service_details || '',
+        feeRange: service.expected_fee_range || '',
+        additionalFacilities: Array.isArray(service.additional_facilities) ? [...service.additional_facilities] : [],
+      });
+    } else {
+      resetCare();
+    }
+
+    // Existing server files are displayed separately from useFileUpload's local File previews.
+    Object.assign(existingFiles, {
+      photo: files.photo || (record.photo ? record.photo : null),
+      id_proof: files.id_proof || (record.id_proof ? record.id_proof : null),
+      medical_reports: files.medical_reports || (record.medical_reports ? record.medical_reports : null),
+      consent_form: files.consent_form || (record.consent_form ? record.consent_form : null),
+      privacy_document: files.privacy_document || (record.privacy_document ? record.privacy_document : null),
+    });
+
+    // Clear only newly selected files from any previous form session.
+    clearPhotoFile(photoInput.value);
+    clearIdProofFile(idProofInput.value);
+    clearMedicalReportsFile(medicalReportsInput.value);
+    clearConsentFormFile(consentFormInput.value);
+    clearPrivacyDocumentFile(privacyDocumentInput.value);
+    [photoInput.value, idProofInput.value, medicalReportsInput.value, consentFormInput.value, privacyDocumentInput.value].forEach(
+      (input) => {
+        if (input) input.value = '';
+      }
+    );
+
+    patient.value = {
+      ...patient.value,
+      code: record.patient_code || null,
+      name: record.patient_name || null,
+      age: record.age ?? null,
+      gender: record.gender || null,
+      location: [record.location_area, record.city, record.state].filter(Boolean).join(', '),
+      status: record.status || 'draft',
+    };
+    documentValidationAttempted.value = false;
+    serverErrors.value = {};
+    activeStep.value = 1;
+    await nextTick();
+    onboardingPanel.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    console.error('Patient edit error:', error);
+    toast.error(error?.response?.data?.errors?.id?.[0] || error?.response?.data?.message || 'Unable to load patient details.');
+  } finally {
+    btnLoading.value = false;
+  }
+};
+
+// Draft persistence needs a separate backend endpoint/status contract.
+// Until that endpoint exists, do not display a misleading "saved" message.
 const saveDraft = () => {
-  toast.success('Draft saved locally for this static demo.');
+  toast.info(isEditMode.value ? 'Use Update to save your patient changes.' : 'Draft saving is not connected yet. Use Finish & Onboard to submit the patient.');
 };
 
 const triggerAgreementUpload = () => {
@@ -625,6 +986,40 @@ const viewAgreement = () => {
 
   const fileUrl = URL.createObjectURL(agreementFile.value);
   window.open(fileUrl, '_blank', 'noopener');
+};
+const patientStatusConfig = {
+  draft: {
+    label: 'Draft',
+    severity: 'warning',
+  },
+  active: {
+    label: 'Active',
+    severity: 'success',
+  },
+  inactive: {
+    label: 'Inactive',
+    severity: 'danger',
+  },
+  pending: {
+    label: 'Pending',
+    severity: 'info',
+  },
+  completed: {
+    label: 'Completed',
+    severity: 'success',
+  },
+  cancelled: {
+    label: 'Cancelled',
+    severity: 'danger',
+  },
+};
+
+const getPatientStatusSeverity = (status) => {
+  return patientStatusConfig[status?.toLowerCase()]?.severity || 'secondary';
+};
+
+const formatPatientStatus = (status) => {
+  return patientStatusConfig[status?.toLowerCase()]?.label || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown');
 };
 const calculateAge = () => {
   if (!basicForm.dateOfBirth) {
@@ -648,48 +1043,6 @@ const handleDateOfBirthChange = () => {
   calculateAge();
 };
 
-const addServiceRequest = () => {
-  const nextNumber = serviceRequests.value.length + 1;
-  const category = newRequest.value.serviceType;
-  const categoryNames = {
-    'Caregiver Replacement': 'Caregiver Replacement',
-    Ambulance: 'Ambulance',
-    Consumables: 'Consumables',
-    'Other Services': 'Other Services',
-  };
-
-  serviceRequests.value.unshift({
-    id: Date.now(),
-    requestId: `SR-2026-${String(nextNumber).padStart(3, '0')}`,
-    serviceType: category === 'Ambulance' ? 'Ambulance Requirement' : category === 'Consumables' ? 'Medical Consumables' : category,
-    requestDate: new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }),
-    details: newRequest.value.details || 'New service request added from the static demo.',
-    assignedTo: 'Operations',
-    status: 'Pending',
-    expectedDate: newRequest.value.expectedDate
-      ? new Date(`${newRequest.value.expectedDate}T00:00:00`).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
-      : 'To be confirmed',
-    category: categoryNames[category] || category,
-  });
-
-  showAddRequest.value = false;
-  newRequest.value = {
-    serviceType: 'Caregiver Replacement',
-    details: '',
-    expectedDate: '2026-10-31',
-  };
-  activeRequestTab.value = 'All Requests';
-  currentPage.value = 1;
-};
-
 const viewRequest = (request) => {
   //toast.success(`Request: ${request.requestId}\n${request.details}`);
 };
@@ -708,8 +1061,37 @@ const requestTabCount = (tab) => {
   if (tab.label === 'All Requests') return serviceRequests.value.length;
   return serviceRequests.value.filter((item) => item.category === tab.label).length;
 };
+/*
+|--------------------------------------------------------------------------
+| Date Transformation
+|--------------------------------------------------------------------------
+*/
+const formatDate = (date) => {
+  if (!date) {
+    return '-';
+  }
+
+  // Date pickers may provide a Date object, while API/list values are strings.
+  const formattedDate = date instanceof Date
+    ? date
+    : new Date(String(date).replace(' ', 'T'));
+
+  if (Number.isNaN(formattedDate.getTime())) {
+    return '-';
+  }
+
+  return formattedDate.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
 onMounted(() => {
   breadcrumbs.value = ['Patient', 'Enrolment'];
+  getPatients();
 });
 </script>
 
@@ -719,7 +1101,7 @@ onMounted(() => {
       <div class="patient-management-page">
         <div class="dashboard-shell">
           <!-- Main content -->
-          <main class="dashboard-main">
+          <main ref="onboardingPanel" class="dashboard-main">
             <header class="topbar">
               <div class="page-heading">
                 <div>
@@ -784,13 +1166,13 @@ onMounted(() => {
                     current: index + 1 === activeStep,
                   }"
                   @click="goToStep(index + 1)"
-                  :aria-disabled="index + 1 > activeStep"
-                  :style="{ cursor: index + 1 > activeStep ? 'not-allowed' : 'pointer' }">
+                  :aria-disabled="!isEditMode && index + 1 > activeStep"
+                  :style="{ cursor: isEditMode || index + 1 <= activeStep ? 'pointer' : 'not-allowed' }">
                   <button type="button" class="step-number">
                     <CIcon v-if="index + 1 < activeStep" :icon="cilCheck" />
                     <span v-else>{{ index + 1 }}</span>
                   </button>
-                  <span class="step-label">{{ step }}</span>
+                  <span class="step-label">{{ index === steps.length - 1 ? reviewStepTitle : step }}</span>
                 </div>
               </div>
 
@@ -799,11 +1181,7 @@ onMounted(() => {
                 <!-- Patient Identity: uses the existing uploaded-photo preview -->
                 <div class="patient-identity">
                   <div class="patient-photo">
-                    <img
-                      v-if="photoPreviewUrl"
-                      :src="photoPreviewUrl"
-                      alt="Patient profile"
-                      class="patient-summary-photo" />
+                    <img v-if="photoDisplayUrl" :src="photoDisplayUrl" alt="Patient profile" class="patient-summary-photo" />
                     <span v-else>{{ patientInitials }}</span>
                   </div>
 
@@ -1196,7 +1574,7 @@ onMounted(() => {
                           <label class="pb-label">Expected Duration <span>*</span></label>
                           <div class="duration-field">
                             <CFormInput
-                              v-model.number="careForm.duration"
+                              v-model="careForm.duration"
                               type="number"
                               min="1"
                               :class="{ 'is-invalid': isCareInvalid('duration') }"
@@ -1345,12 +1723,12 @@ onMounted(() => {
                         <div class="border rounded p-3 h-100">
                           <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong>Patient Photo <span class="text-danger">*</span></strong>
-                            <span v-if="photoPreviewUrl" class="text-success small">Uploaded</span>
+                            <span v-if="photoDisplayUrl" class="text-success small">Uploaded</span>
                           </div>
                           <div class="d-flex align-items-center gap-3 flex-wrap">
                             <img
-                              v-if="photoPreviewUrl"
-                              :src="photoPreviewUrl"
+                              v-if="photoDisplayUrl"
+                              :src="photoDisplayUrl"
                               alt="Patient photo preview"
                               class="rounded"
                               style="width: 76px; height: 76px; object-fit: cover" />
@@ -1371,10 +1749,10 @@ onMounted(() => {
                                 class="d-none"
                                 @change="handlePhotoFileChange($event, allowedPhotoTypes, maxDocumentSize)" />
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(photoInput)">
-                                {{ photoPreviewUrl ? 'Change Photo' : 'Upload Photo' }}
+                                {{ photoDisplayUrl ? 'Change Photo' : 'Upload Photo' }}
                               </CButton>
                               <CButton
-                                v-if="photoPreviewUrl"
+                                v-if="photoDisplayUrl"
                                 color="danger"
                                 variant="ghost"
                                 class="ms-2"
@@ -1384,7 +1762,7 @@ onMounted(() => {
                             </div>
                           </div>
                           <div v-if="photoFileError" class="text-danger small mt-2">{{ photoFileError }}</div>
-                          <div v-if="documentValidationAttempted && !photoPreviewUrl" class="text-danger small mt-2">
+                          <div v-if="documentValidationAttempted && !photoDisplayUrl" class="text-danger small mt-2">
                             Patient photo is required.
                           </div>
                         </div>
@@ -1395,7 +1773,7 @@ onMounted(() => {
                         <div class="border rounded p-3 h-100">
                           <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong>ID Proof <span class="text-danger">*</span></strong>
-                            <span v-if="idProofPreviewUrl" class="text-success small">Uploaded</span>
+                            <span v-if="idProofDisplayUrl" class="text-success small">Uploaded</span>
                           </div>
                           <div class="d-flex align-items-center gap-3">
                             <CIcon :icon="cilFile" size="xl" class="text-body-secondary" />
@@ -1410,13 +1788,13 @@ onMounted(() => {
                                 class="d-none"
                                 @change="handleIdProofFileChange($event, allowedIdentityTypes, maxDocumentSize)" />
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(idProofInput)">
-                                {{ idProofPreviewUrl ? 'Replace File' : 'Upload File' }}
+                                {{ idProofDisplayUrl ? 'Replace File' : 'Upload File' }}
                               </CButton>
-                              <a v-if="idProofPreviewUrl" :href="idProofPreviewUrl" target="_blank" rel="noopener" class="small ms-2"
+                              <a v-if="idProofDisplayUrl" :href="idProofDisplayUrl" target="_blank" rel="noopener" class="small ms-2"
                                 >View</a
                               >
                               <CButton
-                                v-if="idProofPreviewUrl"
+                                v-if="idProofDisplayUrl"
                                 color="danger"
                                 variant="ghost"
                                 class="ms-2"
@@ -1426,7 +1804,7 @@ onMounted(() => {
                             </div>
                           </div>
                           <div v-if="idProofFileError" class="text-danger small mt-2">{{ idProofFileError }}</div>
-                          <div v-if="documentValidationAttempted && !idProofPreviewUrl" class="text-danger small mt-2">
+                          <div v-if="documentValidationAttempted && !idProofDisplayUrl" class="text-danger small mt-2">
                             ID proof is required.
                           </div>
                         </div>
@@ -1437,7 +1815,7 @@ onMounted(() => {
                         <div class="border rounded p-3 h-100">
                           <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong>Medical Reports <span class="text-danger">*</span></strong>
-                            <span v-if="medicalReportsPreviewUrl" class="text-success small">Uploaded</span>
+                            <span v-if="medicalReportsDisplayUrl" class="text-success small">Uploaded</span>
                           </div>
                           <div class="d-flex align-items-center gap-3">
                             <CIcon :icon="cilFile" size="xl" class="text-body-secondary" />
@@ -1452,18 +1830,18 @@ onMounted(() => {
                                 class="d-none"
                                 @change="handleMedicalReportsFileChange($event, allowedMedicalReportTypes, maxDocumentSize)" />
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(medicalReportsInput)">
-                                {{ medicalReportsPreviewUrl ? 'Replace File' : 'Upload File' }}
+                                {{ medicalReportsDisplayUrl ? 'Replace File' : 'Upload File' }}
                               </CButton>
                               <a
-                                v-if="medicalReportsPreviewUrl"
-                                :href="medicalReportsPreviewUrl"
+                                v-if="medicalReportsDisplayUrl"
+                                :href="medicalReportsDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
                                 class="small ms-2"
                                 >View</a
                               >
                               <CButton
-                                v-if="medicalReportsPreviewUrl"
+                                v-if="medicalReportsDisplayUrl"
                                 color="danger"
                                 variant="ghost"
                                 class="ms-2"
@@ -1473,7 +1851,7 @@ onMounted(() => {
                             </div>
                           </div>
                           <div v-if="medicalReportsFileError" class="text-danger small mt-2">{{ medicalReportsFileError }}</div>
-                          <div v-if="documentValidationAttempted && !medicalReportsPreviewUrl" class="text-danger small mt-2">
+                          <div v-if="documentValidationAttempted && !medicalReportsDisplayUrl" class="text-danger small mt-2">
                             Medical reports are required.
                           </div>
                         </div>
@@ -1484,7 +1862,7 @@ onMounted(() => {
                         <div class="border rounded p-3 h-100">
                           <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong>Consent Form <span class="text-danger">*</span></strong>
-                            <span v-if="consentFormPreviewUrl" class="text-success small">Uploaded</span>
+                            <span v-if="consentFormDisplayUrl" class="text-success small">Uploaded</span>
                           </div>
                           <div class="d-flex align-items-center gap-3">
                             <CIcon :icon="cilFile" size="xl" class="text-body-secondary" />
@@ -1499,18 +1877,18 @@ onMounted(() => {
                                 class="d-none"
                                 @change="handleConsentFormFileChange($event, allowedPdfTypes, maxDocumentSize)" />
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(consentFormInput)">
-                                {{ consentFormPreviewUrl ? 'Replace File' : 'Upload PDF' }}
+                                {{ consentFormDisplayUrl ? 'Replace File' : 'Upload PDF' }}
                               </CButton>
                               <a
-                                v-if="consentFormPreviewUrl"
-                                :href="consentFormPreviewUrl"
+                                v-if="consentFormDisplayUrl"
+                                :href="consentFormDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
                                 class="small ms-2"
                                 >View</a
                               >
                               <CButton
-                                v-if="consentFormPreviewUrl"
+                                v-if="consentFormDisplayUrl"
                                 color="danger"
                                 variant="ghost"
                                 class="ms-2"
@@ -1520,7 +1898,7 @@ onMounted(() => {
                             </div>
                           </div>
                           <div v-if="consentFormFileError" class="text-danger small mt-2">{{ consentFormFileError }}</div>
-                          <div v-if="documentValidationAttempted && !consentFormPreviewUrl" class="text-danger small mt-2">
+                          <div v-if="documentValidationAttempted && !consentFormDisplayUrl" class="text-danger small mt-2">
                             Consent form is required.
                           </div>
                         </div>
@@ -1531,7 +1909,7 @@ onMounted(() => {
                         <div class="border rounded p-3 h-100">
                           <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong>Privacy Document <span class="text-danger">*</span></strong>
-                            <span v-if="privacyDocumentPreviewUrl" class="text-success small">Uploaded</span>
+                            <span v-if="privacyDocumentDisplayUrl" class="text-success small">Uploaded</span>
                           </div>
                           <div class="d-flex align-items-center gap-3">
                             <CIcon :icon="cilFile" size="xl" class="text-body-secondary" />
@@ -1546,18 +1924,18 @@ onMounted(() => {
                                 class="d-none"
                                 @change="handlePrivacyDocumentFileChange($event, allowedPdfTypes, maxDocumentSize)" />
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(privacyDocumentInput)">
-                                {{ privacyDocumentPreviewUrl ? 'Replace File' : 'Upload PDF' }}
+                                {{ privacyDocumentDisplayUrl ? 'Replace File' : 'Upload PDF' }}
                               </CButton>
                               <a
-                                v-if="privacyDocumentPreviewUrl"
-                                :href="privacyDocumentPreviewUrl"
+                                v-if="privacyDocumentDisplayUrl"
+                                :href="privacyDocumentDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
                                 class="small ms-2"
                                 >View</a
                               >
                               <CButton
-                                v-if="privacyDocumentPreviewUrl"
+                                v-if="privacyDocumentDisplayUrl"
                                 color="danger"
                                 variant="ghost"
                                 class="ms-2"
@@ -1567,7 +1945,7 @@ onMounted(() => {
                             </div>
                           </div>
                           <div v-if="privacyDocumentFileError" class="text-danger small mt-2">{{ privacyDocumentFileError }}</div>
-                          <div v-if="documentValidationAttempted && !privacyDocumentPreviewUrl" class="text-danger small mt-2">
+                          <div v-if="documentValidationAttempted && !privacyDocumentDisplayUrl" class="text-danger small mt-2">
                             Privacy document is required.
                           </div>
                         </div>
@@ -1579,143 +1957,92 @@ onMounted(() => {
 
               <!-- Review & Onboard -->
               <div v-else-if="activeStep === 5" class="pb-patient-step-content review-page-content">
-                <div class="pb-patient-step-content-inr">
-                  <CCardHeader class="pb-section-title">
-                    <!-- <CIcon :icon="cilCheckCircle" /> -->
-                    <strong>Review & Onboard</strong></CCardHeader
-                  >
-                  <CCardBody>
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <div class="pb-shadow-box h-100">
-                          <div class="pb-shadow-box-header pb-box-header-blue">
-                            <span>Basic Information & Contact</span>
-                          </div>
-                          <div class="pb-shadow-box-body">
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Patient ID</span>
-                              <span class="pb-kv-value">{{ patient.code || 'Generated after saving' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Patient Name</span>
-                              <span class="pb-kv-value">{{ basicForm.patientName || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Date of Birth</span>
-                              <span class="pb-kv-value">{{ basicForm.dateOfBirth || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Gender</span>
-                              <span class="pb-kv-value">{{ basicForm.gender || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Primary Contact</span>
-                              <span class="pb-kv-value">{{ basicForm.primaryContactName || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Phone Number</span>
-                              <span class="pb-kv-value">{{ basicForm.phoneNumber || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Address</span>
-                              <span class="pb-kv-value">{{ basicForm.address || '-' }}</span>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span class="pb-kv-label">Location</span>
-                              <span class="pb-kv-value">{{
-                                [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') ||
-                                '-'
-                              }}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-lg-4">
-                        <div class="pb-shadow-box h-100">
-                          <div class="pb-shadow-box-header pb-box-header-red">
-                            <span>Medical / Care Information</span>
-                          </div>
-                          <div class="pb-shadow-box-body">
-                            <div class="pb-kv-row">
-                              <span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-lg-4">
-                        <div class="pb-shadow-box h-100">
-                          <div class="pb-shadow-box-header pb-box-header-green">
-                            <span>Service Requirement</span>
-                          </div>
-                          <div class="pb-shadow-box-body">
-                            <div class="pb-kv-row">
-                              <span>Care Type</span><strong>{{ careForm.careType }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Service Category</span><strong>{{ careForm.serviceCategory }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Start Date</span><strong>{{ careForm.startDate }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Duration</span><strong>{{ careForm.duration }} {{ careForm.durationUnit }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Duty Hours</span><strong>{{ careForm.dutyHours }}</strong>
-                            </div>
-                            <div class="pb-kv-row">
-                              <span>Service Location</span><strong>{{ careForm.serviceLocation }}</strong>
-                            </div>
-                          </div>
-                        </div>
+                <div class="pb-patient-step-content-inr review-content-wrapper">
+                  <div class="pb-section-title review-section-title">
+                    <strong>{{ reviewStepTitle }}</strong>
+                  </div>
+
+                  <div class="review-summary-grid">
+                    <div class="review-summary-card">
+                      <div class="review-summary-card-header review-header-blue">Basic Information &amp; Contact</div>
+                      <div class="review-summary-card-body">
+                        <div class="review-value-row"><span>Patient ID</span><strong>{{ patient.code || 'Generated after saving' }}</strong></div>
+                        <div class="review-value-row"><span>Patient Name</span><strong>{{ basicForm.patientName || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Date of Birth</span><strong>{{ formatDate(basicForm.dateOfBirth) || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Age</span><strong>{{ basicForm.age || patient.age || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Gender</span><strong>{{ basicForm.gender || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Primary Contact</span><strong>{{ basicForm.primaryContactName || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Relationship</span><strong>{{ basicForm.relationship || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Phone Number</span><strong>{{ basicForm.phoneNumber || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Alternate Number</span><strong>{{ basicForm.alternateNumber || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Emergency Contact</span><strong>{{ basicForm.emergencyContactName || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Emergency Phone</span><strong>{{ basicForm.emergencyPhone || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Address</span><strong>{{ basicForm.address || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Location</span><strong>{{ [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') || '-' }}</strong></div>
                       </div>
                     </div>
 
-                    <div class="pb-shadow-box mt-3">
-                      <div class="pb-shadow-box-header">
-                        <span>Consent & Documents</span>
-                      </div>
-                      <div class="pb-shadow-box-body">
-                        <div class="pb-kv-row">
-                          <span>Patient Photo</span><strong>{{ photoPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                        </div>
-                        <div class="pb-kv-row">
-                          <span>ID Proof</span><strong>{{ idProofPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                        </div>
-                        <div class="pb-kv-row">
-                          <span>Medical Reports</span><strong>{{ medicalReportsPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                        </div>
-                        <div class="pb-kv-row">
-                          <span>Consent Form</span><strong>{{ consentFormPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                        </div>
-                        <div class="pb-kv-row">
-                          <span>Privacy Document</span><strong>{{ privacyDocumentPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                        </div>
+                    <div class="review-summary-card">
+                      <div class="review-summary-card-header review-header-red">Medical / Care Information</div>
+                      <div class="review-summary-card-body">
+                        <div class="review-value-row"><span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Secondary Diagnosis</span><strong>{{ medicalForm.secondaryDiagnosis || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Chronic Conditions</span><strong>{{ medicalForm.chronicConditions || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Medical History</span><strong>{{ medicalForm.medicalHistory || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Special Care Needs</span><strong>{{ medicalForm.specialCareNeeds || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Dietary Preferences</span><strong>{{ medicalForm.dietaryPreferences || '-' }}</strong></div>
                       </div>
                     </div>
-                  </CCardBody>
+
+                    <div class="review-summary-card">
+                      <div class="review-summary-card-header review-header-green">Service Requirement</div>
+                      <div class="review-summary-card-body">
+                        <div class="review-value-row"><span>Care Type</span><strong>{{ careForm.careType || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Service Category</span><strong>{{ careForm.serviceCategory || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Start Date</span><strong>{{ formatDate(careForm.startDate) || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Duration</span><strong>{{ [careForm.duration, careForm.durationUnit].filter(Boolean).join(' ') || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Duty Hours</span><strong>{{ careForm.dutyHours || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Service Location</span><strong>{{ careForm.serviceLocation || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Location Area</span><strong>{{ careForm.locationArea || '-' }}</strong></div>
+                        <div class="review-value-row"><span>City</span><strong>{{ careForm.locationCity || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Caregiver Gender</span><strong>{{ careForm.caregiverGender || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Expected Fee Range</span><strong>{{ careForm.feeRange || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Service Details</span><strong>{{ careForm.serviceDetails || '-' }}</strong></div>
+                        <div class="review-value-row"><span>Additional Facilities</span><strong>{{ (careForm.additionalFacilities || []).join(', ') || '-' }}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="review-summary-card review-documents-card">
+                    <div class="review-summary-card-header">Consent &amp; Documents</div>
+                    <div class="review-summary-card-body review-documents-grid">
+                      <div class="review-value-row"><span>Patient Photo</span><strong>{{ photoDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                      <div class="review-value-row"><span>ID Proof</span><strong>{{ idProofDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                      <div class="review-value-row"><span>Medical Reports</span><strong>{{ medicalReportsDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                      <div class="review-value-row"><span>Consent Form</span><strong>{{ consentFormDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                      <div class="review-value-row"><span>Privacy Document</span><strong>{{ privacyDocumentDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="form-footer">
-                <CButton color="light" variant="outline" class="back-button" @click="previousStep">
+                <CButton color="light" variant="outline" class="back-button" :disabled="btnLoading" @click="previousStep">
                   <CIcon :icon="cilArrowLeft" /> Back
                 </CButton>
                 <div class="footer-actions">
                   <CButton color="light" variant="outline" class="draft-button" @click="saveDraft">
                     <CIcon :icon="cilFile" /> Save Draft
                   </CButton>
-                  <CButton color="primary" class="continue-button" @click="nextStep">
-                    {{ activeStep === steps.length ? 'Finish & Onboard' : 'Continue' }}
-                    <CIcon :icon="cilArrowRight" />
+                  <CButton color="primary" class="continue-button" :disabled="btnLoading" @click="nextStep">
+                    <CSpinner v-if="btnLoading" size="sm" class="me-1" />
+
+                    <template v-else>
+                      {{ activeStep === steps.length ? (isEditMode ? 'Update' : 'Finish & Onboard') : 'Continue' }}
+                      <CIcon :icon="cilArrowRight" />
+                    </template>
                   </CButton>
                 </div>
               </div>
@@ -1729,128 +2056,180 @@ onMounted(() => {
                     <CIcon :icon="cilLayers" />
                   </div>
                   <div>
-                    <h2 class="pb-card-title">Additional Services & Requests</h2>
-                    <p class="pb-card-desc">
-                      Manage multiple service requests for this patient (e.g. caregiver replacement, ambulance, consumables, and other
-                      services)
-                    </p>
+                    <h2 class="pb-card-title">All Patients</h2>
                   </div>
-                </div>
-                <CButton color="primary" class="add-request-button" @click="showAddRequest = !showAddRequest">
-                  <CIcon :icon="cilPlus" /> Add Service Request
-                </CButton>
-              </div>
-
-              <div v-if="showAddRequest" class="add-request-form">
-                <div class="field-group">
-                  <label class="pb-label">Service Type</label>
-                  <CFormSelect v-model="newRequest.serviceType" :options="PATIENT_DROPDOWNS.serviceRequestType" />
-                </div>
-                <div class="field-group request-details-input">
-                  <label class="pb-label">Details</label>
-                  <CFormInput v-model="newRequest.details" placeholder="Enter request details" />
-                </div>
-                <div class="field-group">
-                  <label class="pb-label">Expected Date</label>
-                  <CDatePicker v-model:date="newRequest.expectedDate" format="dd/MM/yyyy" class="form-control" />
-                </div>
-                <div class="add-form-actions">
-                  <CButton color="light" variant="outline" @click="showAddRequest = false">Cancel</CButton>
-                  <CButton color="primary" @click="addServiceRequest">Add Request</CButton>
-                </div>
-              </div>
-
-              <div class="request-tabs">
-                <button
-                  v-for="tab in requestTabs"
-                  :key="tab.label"
-                  class="request-tab"
-                  :class="{ active: activeRequestTab === tab.label }"
-                  @click="setRequestTab(tab.label)">
-                  {{ tab.label }}
-                  <span class="tab-count">{{ requestTabCount(tab) }}</span>
-                </button>
-              </div>
-
-              <div class="table-toolbar">
-                <div class="request-search">
-                  <CIcon :icon="cilSearch" />
-                  <input v-model="searchText" type="search" placeholder="Search service requests..." aria-label="Search service requests" />
-                </div>
-                <div class="table-toolbar-right">
-                  <span
-                    >Showing {{ filteredRequests.length ? (currentPage - 1) * rowsPerPage + 1 : 0 }} to
-                    {{ Math.min(currentPage * rowsPerPage, filteredRequests.length) }} of {{ filteredRequests.length }} records</span
-                  >
-                  <label class="pb-label">Rows</label>
-                  <CFormSelect
-                    v-model.number="rowsPerPage"
-                    :options="PATIENT_DROPDOWNS.rowsPerPage"
-                    class="rows-select"
-                    @update:modelValue="currentPage = 1" />
                 </div>
               </div>
 
               <div class="requests-table-wrap">
-                <DataTable :value="visibleRequests" dataKey="id" responsiveLayout="scroll" class="requests-table" :rowHover="true">
+                <DataTable
+                  :value="patients"
+                  class="patient-table"
+                  dataKey="id"
+                  lazy
+                  paginator
+                  :first="lazyParams.first"
+                  :rows="lazyParams.rows"
+                  :totalRecords="totalRecords"
+                  :loading="loading"
+                  :rowsPerPageOptions="[10, 25, 50, 100]"
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+                  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+                  responsiveLayout="scroll"
+                  @page="onPage">
                   <template #empty>
-                    <div class="empty-state">No service requests found.</div>
+                    <div class="text-center py-4">No patients found.</div>
                   </template>
-                  <Column header="#" headerStyle="width: 34px">
+
+                  <template #loading>
+                    <div class="text-center py-4">Loading patients...</div>
+                  </template>
+
+                  <!-- Serial Number -->
+                  <Column header="#" style="width: 60px">
                     <template #body="{ index }">
-                      {{ (currentPage - 1) * rowsPerPage + index + 1 }}
+                      {{ lazyParams.first + index + 1 }}
                     </template>
                   </Column>
-                  <Column field="requestId" header="Request ID" headerStyle="min-width: 112px">
+
+                  <!-- Patient Information -->
+                  <Column header="Patient Information" style="min-width: 220px">
                     <template #body="{ data }">
-                      <a href="#" class="request-id" @click.prevent>{{ data.requestId }}</a>
+                      <div class="d-flex align-items-center gap-2">
+                        <img
+                          :src="data.photo_url || defaultPatientImage"
+                          class="patient-list-img"
+                          alt="Patient"
+                          @error="handlePatientImageError" />
+
+                        <div class="d-flex flex-column">
+                          <strong class="patient-name">
+                            {{ data.patient_name || 'N/A' }}
+                          </strong>
+
+                          <small class="text-muted">
+                            {{ data.patient_code || 'N/A' }}
+                          </small>
+
+                          <small class="text-muted">
+                            {{ data.age ?? 'N/A' }} years /
+                            {{ data.gender || 'N/A' }}
+                          </small>
+                        </div>
+                      </div>
                     </template>
                   </Column>
-                  <Column field="serviceType" header="Service Type" headerStyle="min-width: 145px">
+
+                  <!-- Contact -->
+                  <Column header="Contact" style="min-width: 150px">
                     <template #body="{ data }">
-                      <div class="service-type-cell">
-                        <span class="service-type-icon">
-                          <CIcon
-                            :icon="
-                              data.category === 'Ambulance' ? cilClock : data.category === 'Consumables' ? cilMedicalCross : cilUser
-                            " />
+                      <div class="d-flex flex-column">
+                        <span>
+                          <CIcon :icon="cilPhone" class="me-1 text-muted" />
+                          {{ data.phone_number || 'N/A' }}
                         </span>
-                        {{ data.serviceType }}
+
+                        <small v-if="data.alternate_number" class="text-muted"> Alt: {{ data.alternate_number }} </small>
                       </div>
                     </template>
                   </Column>
-                  <Column field="requestDate" header="Request Date" headerStyle="min-width: 105px" />
-                  <Column field="details" header="Details" headerStyle="min-width: 220px">
+
+                  <!-- Location -->
+                  <Column header="Location" style="min-width: 160px">
                     <template #body="{ data }">
-                      <div class="request-details">{{ data.details }}</div>
-                    </template>
-                  </Column>
-                  <Column field="assignedTo" header="Assigned To" headerStyle="min-width: 120px" />
-                  <Column field="status" header="Status" headerStyle="min-width: 95px">
-                    <template #body="{ data }">
-                      <Tag :severity="statusSeverity(data.status)" :value="data.status" class="status-tag" />
-                    </template>
-                  </Column>
-                  <Column field="expectedDate" header="Expected Date" headerStyle="min-width: 110px" />
-                  <Column header="Action" headerStyle="width: 94px">
-                    <template #body="{ data }">
-                      <div class="table-actions">
-                        <button type="button" title="View request" @click="viewRequest(data)">
-                          <CIcon :icon="cilLowVision" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Edit request"
-                          @click="
-                            newRequest = { serviceType: data.category, details: data.details, expectedDate: '' };
-                            showAddRequest = true;
-                          ">
-                          <CIcon :icon="cilPencil" />
-                        </button>
-                        <button type="button" title="More actions" @click="showRequestActions(data)">
-                          <CIcon :icon="cilOptions" />
-                        </button>
+                      <div class="d-flex flex-column">
+                        <span>{{ data.city || 'N/A' }}</span>
+                        <small class="text-muted">
+                          {{ data.state || '' }}
+                          {{ data.pin_code ? `- ${data.pin_code}` : '' }}
+                        </small>
                       </div>
+                    </template>
+                  </Column>
+
+                  <!-- Care Requirement -->
+                  <Column header="Care Requirement" style="min-width: 190px">
+                    <template #body="{ data }">
+                      <div v-if="data.current_service_requirement">
+                        <strong>
+                          {{ data.current_service_requirement.care_type || 'N/A' }}
+                        </strong>
+
+                        <small class="d-block text-muted">
+                          {{ data.current_service_requirement.service_category || 'N/A' }}
+                        </small>
+
+                        <small class="d-block text-muted">
+                          {{ data.current_service_requirement.duty_hours || '' }}
+                        </small>
+
+                        <small v-if="data.service_requirements?.length > 1" class="text-primary">
+                          +{{ data.service_requirements.length - 1 }} more requirements
+                        </small>
+                      </div>
+
+                      <span v-else class="text-muted"> Not assigned </span>
+                    </template>
+                  </Column>
+
+                  <!-- Caregiver -->
+                  <Column header="Caregiver" style="min-width: 150px">
+                    <template #body="{ data }">
+                      <template v-if="data.caregiver_assignments?.length">
+                        <div v-for="assignment in data.caregiver_assignments.slice(0, 2)" :key="assignment.id" class="mb-1">
+                          <strong>
+                            {{ assignment.caregiver?.name || 'Caregiver assigned' }}
+                          </strong>
+                          <small class="d-block text-muted">
+                            {{ assignment.status || 'Assigned' }}
+                          </small>
+                        </div>
+
+                        <small v-if="data.caregiver_assignments.length > 2" class="text-primary">
+                          +{{ data.caregiver_assignments.length - 2 }} more
+                        </small>
+                      </template>
+
+                      <Tag v-else severity="warning" value="Not Assigned" />
+                    </template>
+                  </Column>
+
+                  <!-- Patient Status -->
+                  <Column header="Status" style="width: 120px">
+                    <template #body="{ data }">
+                      <Tag :severity="getPatientStatusSeverity(data.status)" :value="formatPatientStatus(data.status)" />
+                    </template>
+                  </Column>
+
+                  <!-- Registration Date -->
+                  <Column header="Registered On" style="min-width: 130px">
+                    <template #body="{ data }">
+                      {{ formatDate(data.created_at) }}
+                    </template>
+                  </Column>
+
+                  <!-- Actions -->
+                  <Column header="Action" style="min-width: 150px">
+                    <template #body="{ data }">
+                      <CButton
+                        color="info"
+                        variant="outline"
+                        size="sm"
+                        class="me-2 mb-1"
+                        title="View Patient"
+                        @click="viewPatient(data.id)">
+                        <CIcon :icon="cilLowVision" />
+                      </CButton>
+
+                      <CButton
+                        color="warning"
+                        variant="outline"
+                        size="sm"
+                        class="me-2 mb-1"
+                        title="Edit Patient"
+                        @click="editPatient(data.id)">
+                        <CIcon :icon="cilPencil" />
+                      </CButton>
                     </template>
                   </Column>
                 </DataTable>
@@ -1862,7 +2241,6 @@ onMounted(() => {
     </CCol>
   </CRow>
 </template>
-
 
 <style scoped>
 .patient-photo {
@@ -1882,4 +2260,25 @@ onMounted(() => {
 .patient-summary-details {
   min-width: 0;
 }
+
+
+/* Review tab: use explicit layout so the summary remains visible in both create and edit modes. */
+.review-content-wrapper { display: block !important; width: 100%; }
+.review-section-title { display: block; margin-bottom: 18px; color: #24324b; }
+.review-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.review-summary-card { min-width: 0; height: 100%; overflow: hidden; border: 1px solid #dce5f1; border-radius: 8px; background: #fff; }
+.review-summary-card-header { padding: 12px 15px; font-weight: 700; color: #24324b; background: #f4f7fb; border-bottom: 1px solid #dce5f1; }
+.review-header-blue { background: #edf4ff; }
+.review-header-red { background: #fff0f0; }
+.review-header-green { background: #effaf3; }
+.review-summary-card-body { display: block !important; padding: 12px 15px; }
+.review-value-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 8px 0; border-bottom: 1px solid #edf0f5; font-size: 13px; }
+.review-value-row:last-child { border-bottom: 0; }
+.review-value-row > span { flex: 0 0 42%; color: #718096; }
+.review-value-row > strong { flex: 1; min-width: 0; color: #263449; font-weight: 600; text-align: right; overflow-wrap: anywhere; white-space: pre-wrap; }
+.review-documents-card { margin-top: 16px; height: auto; }
+.review-documents-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+@media (max-width: 991px) { .review-summary-grid { grid-template-columns: 1fr; } }
+@media (max-width: 575px) { .review-documents-grid { grid-template-columns: 1fr; } .review-value-row { gap: 8px; } }
+
 </style>

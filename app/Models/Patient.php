@@ -3,14 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Patient extends Model
 {
-    use SoftDeletes;
+    protected $table = 'patients';
 
     protected $fillable = [
         // Basic Information
+        'patient_code',
         'patient_name',
         'date_of_birth',
         'age',
@@ -43,22 +46,8 @@ class Patient extends Model
         'special_care_needs',
         'dietary_preferences',
 
-        // Service Requirement
-        'care_type',
-        'care_start_date',
-        'duration',
-        'duration_unit',
-        'duty_hours',
-        'service_category',
-        'service_location',
-        'service_location_area',
-        'service_city',
-        'caregiver_gender',
-
-        // Service Details
-        'service_details',
-        'expected_fee_range',
-        'additional_facilities',
+        // Current Service Requirement
+        'current_service_requirement_id',
 
         // Documents
         'photo',
@@ -67,17 +56,69 @@ class Patient extends Model
         'consent_form',
         'privacy_document',
 
+        // Status
         'status',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'date_of_birth' => 'date',
+        'age' => 'integer',
+    ];
+
+    /**
+     * Patient has multiple service requirements.
+     */
+    public function serviceRequirements(): HasMany
     {
-        return [
-            'date_of_birth' => 'date',
-            'care_start_date' => 'date',
-            'additional_facilities' => 'array',
-            'age' => 'integer',
-            'duration' => 'integer',
-        ];
+        return $this->hasMany(
+            PatientServiceRequirement::class,
+            'patient_id'
+        );
+    }
+
+    /**
+     * Get currently selected service requirement.
+     */
+    public function currentServiceRequirement(): BelongsTo
+    {
+        return $this->belongsTo(
+            PatientServiceRequirement::class,
+            'current_service_requirement_id'
+        );
+    }
+
+    /**
+     * Patient has multiple caregiver assignment records.
+     */
+    public function caregiverAssignments(): HasMany
+    {
+        return $this->hasMany(
+            PatientCaregiver::class,
+            'patient_id'
+        );
+    }
+
+    /**
+     * Get caregivers assigned to this patient.
+     * Caregiver records are stored in enrolments table.
+     */
+    public function caregivers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Enrolment::class,
+            'patient_caregivers',
+            'patient_id',
+            'caregiver_id'
+        )
+            ->withPivot([
+                'id',
+                'service_requirement_id',
+                'assigned_date',
+                'start_date',
+                'end_date',
+                'status',
+                'notes',
+            ])
+            ->withTimestamps();
     }
 }

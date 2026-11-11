@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
             // Add Patient
             Route::post('/save', [PatientController::class, 'store']);
             Route::post('/index', [PatientController::class, 'index']);
+            Route::post('/view', [PatientController::class, 'view']);
 
             // Get Patient Details for Edit
 
