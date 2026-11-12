@@ -33,6 +33,7 @@ import {
   cilArrowRight,
   cilPencil,
   cilLowVision,
+  cilTrash,
   cilOptions,
   cilCheckCircle,
   cilLayers,
@@ -1228,11 +1229,11 @@ onMounted(() => {
                 <div class="pb-patient-step-content-inr">
                   <CCardHeader class="pb-section-title">
                     <!-- <CIcon :icon="cilUser" /> -->
-                    <strong>Basic Information</strong></CCardHeader
+                    Basic Information</CCardHeader
                   >
                   <CCardBody>
                     <div class="row g-3">
-                      <div class="col-lg-4">
+                      <div class="col-lg-3 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Patient Name <span>*</span></label
                           ><CFormInput
@@ -1244,7 +1245,7 @@ onMounted(() => {
                           <CFormFeedback invalid> {{ basicErrors?.patientName?.message }}. </CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-3 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Date of Birth <span>*</span></label>
                           <CDatePicker
@@ -1256,12 +1257,12 @@ onMounted(() => {
                             @update:date="handleDateOfBirthChange" />
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-3 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Age</label><CFormInput v-model="basicForm.age" placeholder="-" readonly />
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-3 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Gender <span>*</span></label
                           ><CFormSelect
@@ -1278,11 +1279,12 @@ onMounted(() => {
                 <div class="pb-patient-step-content-inr">
                   <CCardHeader class="pb-section-title">
                     <!--<CIcon :icon="cilLocationPin" /> -->
-                    <strong>Contact & Address</strong></CCardHeader
+                    Contact & Address
+                  </CCardHeader
                   >
                   <CCardBody>
                     <div class="row g-3">
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Primary Contact Name <span>*</span></label
                           ><CFormInput
@@ -1293,7 +1295,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.primaryContactName?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Relationship <span>*</span></label
                           ><CFormSelect
@@ -1304,7 +1306,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.relationship?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Phone Number <span>*</span></label>
                           <CFormInput
@@ -1320,7 +1322,7 @@ onMounted(() => {
                         </div>
                       </div>
 
-                      <div class="col-lg-4">
+                      <div class="col-lg-6 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Alternate Number</label
                           ><CFormInput
@@ -1335,7 +1337,7 @@ onMounted(() => {
                         </div>
                       </div>
 
-                      <div class="col-lg-8">
+                      <div class="col-lg-6 col-md-12">
                         <div class="field-group">
                           <label class="pb-label">Location / Area <span>*</span></label
                           ><CFormInput
@@ -1360,7 +1362,7 @@ onMounted(() => {
                         </div>
                       </div>
 
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">City<span>*</span></label>
                           <CFormInput
@@ -1370,7 +1372,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.city?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">State<span class="text-danger">*</span></label>
                           <CFormSelect
@@ -1385,7 +1387,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.state?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">PIN Code <span class="text-danger">*</span></label>
 
@@ -1400,7 +1402,7 @@ onMounted(() => {
                         </div>
                       </div>
 
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Emergency Contact Name <span class="text-danger">*</span></label
                           ><CFormInput
@@ -1411,7 +1413,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.emergencyContactName?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Relationship <span class="text-danger">*</span></label>
 
@@ -1423,7 +1425,7 @@ onMounted(() => {
                           <CFormFeedback invalid>{{ basicErrors?.emergencyRelationship?.message }}</CFormFeedback>
                         </div>
                       </div>
-                      <div class="col-lg-4">
+                      <div class="col-lg-4 col-md-6">
                         <div class="field-group emergency-phone-field">
                           <label class="pb-label">Emergency Phone <span class="text-danger">*</span></label
                           ><CFormInput
@@ -1753,11 +1755,11 @@ onMounted(() => {
                               </CButton>
                               <CButton
                                 v-if="photoDisplayUrl"
-                                color="danger"
-                                variant="ghost"
+                                color="warning"
+                                variant="outline"
                                 class="ms-2"
                                 @click="clearPhotoFile(photoInput)">
-                                Remove
+                                <CIcon :icon="cilTrash" />
                               </CButton>
                             </div>
                           </div>
@@ -1790,16 +1792,18 @@ onMounted(() => {
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(idProofInput)">
                                 {{ idProofDisplayUrl ? 'Replace File' : 'Upload File' }}
                               </CButton>
-                              <a v-if="idProofDisplayUrl" :href="idProofDisplayUrl" target="_blank" rel="noopener" class="small ms-2"
-                                >View</a
+                              <a v-if="idProofDisplayUrl" :href="idProofDisplayUrl" target="_blank" rel="noopener" class="btn btn-outline-info ms-2 view-btn"
+                                >
+                                <CIcon :icon="cilLowVision" />
+                                </a
                               >
                               <CButton
                                 v-if="idProofDisplayUrl"
-                                color="danger"
-                                variant="ghost"
+                               color="warning"
+                                variant="outline"
                                 class="ms-2"
                                 @click="clearIdProofFile(idProofInput)"
-                                >Remove</CButton
+                                ><CIcon :icon="cilTrash" /></CButton
                               >
                             </div>
                           </div>
@@ -1837,16 +1841,16 @@ onMounted(() => {
                                 :href="medicalReportsDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
-                                class="small ms-2"
-                                >View</a
+                                class="btn btn-outline-info ms-2 view-btn"
+                                ><CIcon :icon="cilLowVision" /></a
                               >
                               <CButton
                                 v-if="medicalReportsDisplayUrl"
-                                color="danger"
-                                variant="ghost"
+                                color="warning"
+                                variant="outline"
                                 class="ms-2"
                                 @click="clearMedicalReportsFile(medicalReportsInput)"
-                                >Remove</CButton
+                                ><CIcon :icon="cilTrash" /></CButton
                               >
                             </div>
                           </div>
@@ -1884,16 +1888,16 @@ onMounted(() => {
                                 :href="consentFormDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
-                                class="small ms-2"
-                                >View</a
+                                class="btn btn-outline-info ms-2 view-btn"
+                                ><CIcon :icon="cilLowVision" /></a
                               >
                               <CButton
                                 v-if="consentFormDisplayUrl"
-                                color="danger"
-                                variant="ghost"
+                               color="warning"
+                                variant="outline"
                                 class="ms-2"
                                 @click="clearConsentFormFile(consentFormInput)"
-                                >Remove</CButton
+                                ><CIcon :icon="cilTrash" /></CButton
                               >
                             </div>
                           </div>
@@ -1931,16 +1935,16 @@ onMounted(() => {
                                 :href="privacyDocumentDisplayUrl"
                                 target="_blank"
                                 rel="noopener"
-                                class="small ms-2"
-                                >View</a
+                                class="btn btn-outline-info ms-2 view-btn"
+                                ><CIcon :icon="cilLowVision" /></a
                               >
                               <CButton
                                 v-if="privacyDocumentDisplayUrl"
-                                color="danger"
-                                variant="ghost"
+                                color="warning"
+                                variant="outline"
                                 class="ms-2"
                                 @click="clearPrivacyDocumentFile(privacyDocumentInput)"
-                                >Remove</CButton
+                                ><CIcon :icon="cilTrash" /></CButton
                               >
                             </div>
                           </div>
@@ -2086,7 +2090,7 @@ onMounted(() => {
                   </template>
 
                   <!-- Serial Number -->
-                  <Column header="#" style="width: 60px">
+                  <Column header="#" style="width: 40px">
                     <template #body="{ index }">
                       {{ lazyParams.first + index + 1 }}
                     </template>
@@ -2121,11 +2125,11 @@ onMounted(() => {
                   </Column>
 
                   <!-- Contact -->
-                  <Column header="Contact" style="min-width: 150px">
+                  <Column header="Contact" style="min-width: 110px">
                     <template #body="{ data }">
                       <div class="d-flex flex-column">
                         <span>
-                          <CIcon :icon="cilPhone" class="me-1 text-muted" />
+                          <!-- <CIcon :icon="cilPhone" class="me-1 text-muted" /> -->
                           {{ data.phone_number || 'N/A' }}
                         </span>
 
@@ -2173,7 +2177,7 @@ onMounted(() => {
                   </Column>
 
                   <!-- Caregiver -->
-                  <Column header="Caregiver" style="min-width: 150px">
+                  <Column header="Caregiver" style="min-width: 100px">
                     <template #body="{ data }">
                       <template v-if="data.caregiver_assignments?.length">
                         <div v-for="assignment in data.caregiver_assignments.slice(0, 2)" :key="assignment.id" class="mb-1">
@@ -2195,7 +2199,7 @@ onMounted(() => {
                   </Column>
 
                   <!-- Patient Status -->
-                  <Column header="Status" style="width: 120px">
+                  <Column header="Status" style="width: 100px">
                     <template #body="{ data }">
                       <Tag :severity="getPatientStatusSeverity(data.status)" :value="formatPatientStatus(data.status)" />
                     </template>
@@ -2209,7 +2213,7 @@ onMounted(() => {
                   </Column>
 
                   <!-- Actions -->
-                  <Column header="Action" style="min-width: 150px">
+                  <Column header="Action" style="min-width: 110px">
                     <template #body="{ data }">
                       <CButton
                         color="info"
