@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ class Enrolment extends Model
 {
     use HasFactory, SoftDeletes;
     // Automatically include profile_preview_url in arrays/JSON responses
-     // 1. Disable automatic snake_case conversion for appends
+    // 1. Disable automatic snake_case conversion for appends
     public static $snakeAttributes = false;
 
     // 2. Define the exact camelCase keys you want in the JSON output
@@ -35,7 +36,8 @@ class Enrolment extends Model
         'designation',
         'specialization',
         'profile_photo',
-        'status','email',
+        'status',
+        'email',
         'phone',
         'rating',
         'remark',
@@ -46,7 +48,10 @@ class Enrolment extends Model
         'insta_reviews',
         'google_reviews',
         'gender',
-        'hospital_id'
+        'hospital_id',
+        'language_id',
+        'area_id',
+        'religion_id'
     ];
     public function vendor()
     {
@@ -56,9 +61,21 @@ class Enrolment extends Model
     {
         return $this->belongsTo(Designation::class, 'designation', 'id');
     }
+    public function religion()
+    {
+        return $this->belongsTo(Religion::class, 'religion_id', 'id');
+    }
+    public function area()
+    {
+        return $this->belongsTo(Area::class, 'area_id', 'id');
+    }
+    public function language()
+    {
+        return $this->belongsTo(Language::class, 'language_id', 'id');
+    }
     public function past_experience()
     {
-         return $this->hasMany(EnrolmentHiring::class,'enrolment_id','id');
+        return $this->hasMany(EnrolmentHiring::class, 'enrolment_id', 'id');
     }
     /**
      * Get the full URL for the enrolment profile preview.
@@ -89,10 +106,10 @@ class Enrolment extends Model
         );
     }
 
-      /**
+    /**
      * Get the full URL for the certificate  preview.
      */
-   protected function certificatePreviewUrl(): Attribute
+    protected function certificatePreviewUrl(): Attribute
     {
         return Attribute::make(
             get: function (mixed $value, array $attributes) {

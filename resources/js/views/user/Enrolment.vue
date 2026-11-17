@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, onMounted, computed, nextTick, onUnmounted, watch } from 'vue';
-import {CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter } from '@coreui/vue'
+import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter } from '@coreui/vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -26,15 +26,27 @@ import { CRow, CCol, CCard, CCardHeader, CCardBody, CForm, CFormLabel, CFormInpu
 
 import CIcon from '@coreui/icons-vue';
 
-import { cilPencil, cilTrash, cilPlus, cilSave, cilX, cilSearch, cilReload, cilCheckCircle,cilEyedropper,cilLowVision,cilLockUnlocked } from '@coreui/icons';
+import {
+  cilPencil,
+  cilTrash,
+  cilPlus,
+  cilSave,
+  cilX,
+  cilSearch,
+  cilReload,
+  cilCheckCircle,
+  cilEyedropper,
+  cilLowVision,
+  cilLockUnlocked,
+} from '@coreui/icons';
 
 import Swal from 'sweetalert2';
 
 import { useToast } from 'vue-toastification';
 
-import { CDatePicker } from '@coreui/vue-pro'
+import { CDatePicker } from '@coreui/vue-pro';
 
-import ViewEnrolment from '@/views/user/ViewEnrolment.vue'
+import ViewEnrolment from '@/views/user/ViewEnrolment.vue';
 
 const toast = useToast();
 
@@ -53,11 +65,11 @@ import { Subject, of, from, map } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { useAuthStore } from '@/stores/auth';
 
-import { CRating } from '@coreui/vue-pro'
+import { CRating } from '@coreui/vue-pro';
 
-import { CFormCheck } from '@coreui/vue'
+import { CFormCheck } from '@coreui/vue';
 
-import '@coreui/coreui-pro/dist/css/coreui.css'
+import '@coreui/coreui-pro/dist/css/coreui.css';
 
 /*
 |--------------------------------------------------------------------------
@@ -67,7 +79,10 @@ import '@coreui/coreui-pro/dist/css/coreui.css'
 
 const enrolments = ref([]);
 const vendors = ref([]);
-const designations=ref([]);
+const designations = ref([]);
+const religions = ref([]);
+const languages = ref([]);
+const areas = ref([]);
 const vendorSearch = ref(null);
 
 const loading = computed(() => loadingStore.loading);
@@ -92,14 +107,14 @@ const CertificateFile = ref(null);
 const formSection = ref(null);
 
 const selectedEnrolments = ref([]);
-const visibleLiveDemo =ref(false);
+const visibleLiveDemo = ref(false);
 const approving = ref(false);
 const statusTypes = ref([
   { label: 'Active', value: 'A' },
   { label: 'Pending', value: 'P' },
 ]);
 const authStore = useAuthStore();
-const viewData=ref(null);
+const viewData = ref(null);
 
 watch(
   selectedEnrolments,
@@ -236,6 +251,21 @@ const { form, errors, validate, validateField, isInvalid, reset, patchValue } = 
     message: 'gender is required',
   },
 
+  religion_id: {
+    default: null,
+    required: false,
+  },
+
+  language_id: {
+    default: null,
+    required: false,
+  },
+
+  area_id: {
+    default: null,
+    required: false,
+  },
+
   experience: {
     default: null,
     required: false,
@@ -369,7 +399,7 @@ const editorConfig = {
 const defaultFilters = {
   keyword: null,
   status: null,
-  designation:null
+  designation: null,
 };
 
 const filters = reactive({ ...defaultFilters });
@@ -402,14 +432,30 @@ const getEnrolments = async () => {
 };
 const getDesignations = async () => {
   try {
-
     const response = await api.post('/designation/listing', {});
     const result = response.data.data;
     designations.value = result;
-
   } catch (error) {
     console.error('Designation Error:', error);
   } finally {
+  }
+};
+
+// Fetch Religion, Language and Area master data
+const getMasters = async () => {
+  try {
+    const response = await api.post('/masters');
+
+    if (response.data?.status) {
+      const data = response.data.data || {};
+
+      religions.value = data.religions || [];
+      languages.value = data.languages || [];
+      areas.value = data.areas || [];
+    }
+  } catch (error) {
+    console.error('Master Data Error:', error);
+    toast.error(error.response?.data?.message || 'Unable to load master data.');
   }
 };
 
@@ -466,8 +512,8 @@ const resetForm = () => {
 | Release Enrolment
 |--------------------------------------------------------------------------
 */
-const releaseEnrolement=(id)=>{
- Swal.fire({
+const releaseEnrolement = (id) => {
+  Swal.fire({
     title: 'Are you sure?',
 
     text: 'You are about to release this employee. This action will release the employee from the current hospital.',
@@ -490,8 +536,7 @@ const releaseEnrolement=(id)=>{
       if (response.data.status) {
         toast.success(response.data.message);
         getEnrolments();
-      }
-      else {
+      } else {
         toast.error(response.data.message);
       }
     } catch (error) {
@@ -500,7 +545,7 @@ const releaseEnrolement=(id)=>{
       toast.error(error.response?.data?.message);
     }
   });
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -521,42 +566,38 @@ const addNew = () => {
 */
 
 const editEnrolment = async (id) => {
-
   try {
-
-    const response = await api.post('/enrolment/view', {id:id});
+    const response = await api.post('/enrolment/view', { id: id });
     const result = response.data.data;
-    if(response.data.status)
-    {
+    if (response.data.status) {
+      patchValue({
+        ...result,
+        designation: result?.designation?.id ?? result?.designation ?? null,
+        religion_id: result?.religion_id ?? result?.preferred_religion?.id ?? null,
+        language_id: result?.language_id ?? result?.language?.id ?? null,
+        area_id: result?.area_id ?? result?.area?.id ?? null,
+      });
 
-        patchValue({...result,designation:result?.designation?.id});
+      editingId.value = result.id;
 
-        editingId.value = result.id;
+      editMode.value = true;
 
-        editMode.value = true;
+      validated.value = false;
 
-        validated.value = false;
+      profilePreviewUrl.value = result?.profilePreviewUrl;
 
-        profilePreviewUrl.value = result?.profilePreviewUrl;
+      aadhaarPreviewUrl.value = result?.aadhaarPreviewUrl;
 
-        aadhaarPreviewUrl.value = result?.aadhaarPreviewUrl;
+      certificatePreviewUrl.value = result?.certificatePreviewUrl;
 
-        certificatePreviewUrl.value = result?.certificatePreviewUrl;
+      vendorSearch.value = { id: result.vendor.id, name: result.vendor.name };
 
-        vendorSearch.value = { id: result.vendor.id, name: result.vendor.name };
-
-        formSection.value?.$el?.scrollIntoView({ behavior: 'smooth' });
+      formSection.value?.$el?.scrollIntoView({ behavior: 'smooth' });
     }
-
   } catch (error) {
     console.error('Enrolment Error:', error);
   } finally {
   }
-
-
-
-
-
 };
 
 /*
@@ -566,27 +607,17 @@ const editEnrolment = async (id) => {
 */
 
 const viewEnrolment = async (id) => {
-
   try {
-
-    const response = await api.post('/enrolment/view', {id:id});
+    const response = await api.post('/enrolment/view', { id: id });
     const result = response.data.data;
-    if(response.data.status)
-    {
-        viewData.value=result;
-        visibleLiveDemo.value=true;
-
+    if (response.data.status) {
+      viewData.value = result;
+      visibleLiveDemo.value = true;
     }
-
   } catch (error) {
     console.error('Enrolment Error:', error);
   } finally {
   }
-
-
-
-
-
 };
 
 /*
@@ -615,24 +646,22 @@ const saveEnrolment = async (event) => {
   btnLoading.value = true;
 
   try {
-   const formData = new FormData();
+    const formData = new FormData();
 
     Object.entries(form).forEach(([key, value]) => {
-    if (value !== null && value !== undefined) {
-
+      if (value !== null && value !== undefined) {
         // Check if the value is an instance of a Date object
         if (value instanceof Date) {
-        // Formats safely to YYYY-MM-DD using local time
-        const year = value.getFullYear();
-        const month = String(value.getMonth() + 1).padStart(2, '0');
-        const day = String(value.getDate()).padStart(2, '0');
+          // Formats safely to YYYY-MM-DD using local time
+          const year = value.getFullYear();
+          const month = String(value.getMonth() + 1).padStart(2, '0');
+          const day = String(value.getDate()).padStart(2, '0');
 
-        value = `${year}-${month}-${day}`;
+          value = `${year}-${month}-${day}`;
         }
         formData.append(key, value);
-    }
+      }
     });
-
 
     const response = await api.post('/enrolment/save', formData);
     if (response.data.status) {
@@ -707,6 +736,7 @@ onMounted(() => {
   breadcrumbs.value = ['Enrolment'];
   getEnrolments();
   getDesignations();
+  getMasters();
 });
 
 /*
@@ -841,17 +871,15 @@ const bulkApprove = async (id = null) => {
     const response = await api.post('/enrolment/bulk-approve', {
       ids,
     });
-    if(response.data.status)
-    {
-         toast.success(response.data.message || 'Selected enrolment records approved successfully.');
+    if (response.data.status) {
+      toast.success(response.data.message || 'Selected enrolment records approved successfully.');
 
-        // Clear selection
-        selectedEnrolments.value = [];
+      // Clear selection
+      selectedEnrolments.value = [];
 
-        // Reload table
-        getEnrolments();
+      // Reload table
+      getEnrolments();
     }
-
   } catch (error) {
     console.error(error);
 
@@ -876,21 +904,18 @@ const bulkHire = async (id = null) => {
   }
 
   try {
-
     const ids = selectedEnrolments.value.map((item) => item.id);
     const response = await api.post('/enrolment/hiring', {
       ids,
     });
-    if(response.data.status)
-    {
-         toast.success(response.data.message || 'Selected enrolment records approved successfully.');
-        // Clear selection
-        selectedEnrolments.value = [];
+    if (response.data.status) {
+      toast.success(response.data.message || 'Selected enrolment records approved successfully.');
+      // Clear selection
+      selectedEnrolments.value = [];
 
-        // Reload table
-        getEnrolments();
+      // Reload table
+      getEnrolments();
     }
-
   } catch (error) {
     console.error(error);
 
@@ -900,25 +925,22 @@ const bulkHire = async (id = null) => {
   }
 };
 
-
 /*
 |--------------------------------------------------------------------------
 | Toogle Status
 |--------------------------------------------------------------------------
 */
-const toogleStatus=async (id=null)=>{
-try {
-      const response = await api.post('/enrolment/status/toggle', {id: id});
-      if (response.data.status) {
-        toast.success(response.data.message);
-
-      }
+const toogleStatus = async (id = null) => {
+  try {
+    const response = await api.post('/enrolment/status/toggle', { id: id });
+    if (response.data.status) {
+      toast.success(response.data.message);
     }
-    catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || 'Unable to delete data.');
-    }
-}
+  } catch (error) {
+    console.error(error);
+    toast.error(error.response?.data?.message || 'Unable to delete data.');
+  }
+};
 </script>
 <template>
   <CRow>
@@ -926,7 +948,7 @@ try {
     <!-- LISTING -->
     <!-- ====================================================== -->
 
-    <CCol :lg="12" :md="12" :sm="12" >
+    <CCol :lg="12" :md="12" :sm="12">
       <CCard class="mb-4">
         <CCardHeader>
           <div class="d-flex justify-content-between align-items-center">
@@ -959,19 +981,15 @@ try {
                     placeholder="All"
                     class="w-100" />
                 </div>
-                 <div class="col-lg-2 col-md-6">
-                  <select  class="form-control" v-model="filters.designation">
-                      <option :value="null">Designation</option>
-                      <!-- Loop starts here -->
-                        <option
-                            v-for="item in designations"
-                            :key="item.id"
-                            :value="item.id">
-                            {{ item.name }}
-                        </option>
-                </select>
-                 </div>
-
+                <div class="col-lg-2 col-md-6">
+                  <select class="form-control" v-model="filters.designation">
+                    <option :value="null">Designation</option>
+                    <!-- Loop starts here -->
+                    <option v-for="item in designations" :key="item.id" :value="item.id">
+                      {{ item.name }}
+                    </option>
+                  </select>
+                </div>
 
                 <!-- Search -->
                 <div class="col-lg-2 col-md-6">
@@ -1000,12 +1018,21 @@ try {
 
                 <span class="selected-text"> records selected </span>
               </div>
-              <CButton color="success" :disabled="selectedEnrolments.length === 0 || approving" @click="bulkApprove()" v-if="authStore.user.role == 'admin'">
+              <CButton
+                color="success"
+                :disabled="selectedEnrolments.length === 0 || approving"
+                @click="bulkApprove()"
+                v-if="authStore.user.role == 'admin'">
                 <CSpinner v-if="approving" size="sm" class="me-2" />
                 <CIcon :icon="cilCheckCircle" class="me-2" v-else />
                 Bulk Approve
               </CButton>
-              <CButton color="success" :disabled="selectedEnrolments.length === 0" @click="bulkHire()" v-if="authStore.user.role == 'hospital'" style="color: white;">
+              <CButton
+                color="success"
+                :disabled="selectedEnrolments.length === 0"
+                @click="bulkHire()"
+                v-if="authStore.user.role == 'hospital'"
+                style="color: white">
                 <CSpinner v-if="approving" size="sm" class="me-2" />
                 <CIcon :icon="cilCheckCircle" class="me-2" v-else />
                 Hiring Request
@@ -1022,7 +1049,7 @@ try {
               :totalRecords="totalRecords"
               :loading="loading"
               :rowsPerPageOptions="[10, 25, 50, 100]"
-              :rowClass="(data) => data.hospital_id ? 'has-placement' : ''"
+              :rowClass="(data) => (data.hospital_id ? 'has-placement' : '')"
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
               responsiveLayout="scroll"
@@ -1035,7 +1062,10 @@ try {
                 <div class="text-center py-4">Loading records...</div>
               </template>
               <!-- SELECT ALL / ROW CHECKBOX -->
-              <Column selectionMode="multiple" headerStyle="width: 3rem" v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'" />
+              <Column
+                selectionMode="multiple"
+                headerStyle="width: 3rem"
+                v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'" />
               <Column header="#">
                 <template #body="{ index }">
                   {{ lazyParams.first + index + 1 }}
@@ -1048,41 +1078,51 @@ try {
               </Column>
 
               <Column header="Name" field="name" />
-              <Column header="Vendor"  v-if="authStore.user.role != 'hospital'">
+              <Column header="Vendor" v-if="authStore.user.role != 'hospital'">
                 <template #body="{ data }">
                   {{ data?.vendor?.name }}
                 </template>
               </Column>
-              <Column  header="Address" field="address"  v-if="authStore.user.role == 'hospital'"/>
+              <Column header="Address" field="address" v-if="authStore.user.role == 'hospital'" />
 
-              <Column header="Phone" field="phone"  v-if="authStore.user.role != 'hospital'" />
-              <Column header="Qualification" field="highest_qualification"  v-if="authStore.user.role == 'hospital'" />
+              <Column header="Phone" field="phone" v-if="authStore.user.role != 'hospital'" />
+              <Column header="Qualification" field="highest_qualification" v-if="authStore.user.role == 'hospital'" />
               <Column header="Status">
                 <template #body="{ data }">
-                  <CFormSwitch style="cursor: pointer;" id="formSwitchCheckChecked{{ data.id }}" label=""  :checked="data.status === 'A'" @click="toogleStatus(data.id)" v-if="authStore.user.role == 'admin'" />
+                  <CFormSwitch
+                    style="cursor: pointer"
+                    id="formSwitchCheckChecked{{ data.id }}"
+                    label=""
+                    :checked="data.status === 'A'"
+                    @click="toogleStatus(data.id)"
+                    v-if="authStore.user.role == 'admin'" />
                   <Tag v-else :severity="data.status == 'A' ? 'success' : 'danger'" :value="data.status == 'A' ? 'Active' : 'Pending'" />
                 </template>
               </Column>
-              <Column header="Designation" #body="{ data }" >{{ data?.designation?.name }}</Column>
+              <Column header="Designation" #body="{ data }">{{ data?.designation?.name }}</Column>
               <Column header="Action">
                 <template #body="{ data }">
-
-                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="releaseEnrolement(data.id)" v-if="data.hospital_id && authStore.user.role == 'admin'">
+                  <CButton
+                    color="warning"
+                    variant="outline"
+                    size="sm"
+                    class="me-2 mb-2"
+                    @click="releaseEnrolement(data.id)"
+                    v-if="data.hospital_id && authStore.user.role == 'admin'">
                     <CIcon :icon="cilLockUnlocked" />
                   </CButton>
-                 <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
+                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
                     <CIcon :icon="cilLowVision" />
                   </CButton>
                   <template v-if="authStore.user.role != 'hospital'">
-                     <CButton color="warning" variant="outline" size="sm" class="me-2  mb-2" @click="editEnrolment(data.id)">
-                    <CIcon :icon="cilPencil" />
-                  </CButton>
+                    <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
+                      <CIcon :icon="cilPencil" />
+                    </CButton>
 
-                  <CButton color="danger" variant="outline" size="sm" class="me-2  mb-2" @click="deleteEnrolment(data.id)">
-                    <CIcon :icon="cilTrash" />
-                  </CButton>
+                    <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
+                      <CIcon :icon="cilTrash" />
+                    </CButton>
                   </template>
-
                 </template>
               </Column>
             </DataTable>
@@ -1165,21 +1205,79 @@ try {
                       @input="validateField('last_name')" />
                     <CFormFeedback invalid> {{ errors?.last_name?.message }}. </CFormFeedback>
                   </CCol>
-                   <CCol md="6" class="mb-3">
+                  <CCol md="6" class="mb-3">
                     <!-- Last Name -->
                     <CFormLabel>Gender</CFormLabel>
-                    <CFormSelect size="md" class="form-control " aria-label="Large select example"  v-model.trim="form.gender"
+                    <CFormSelect
+                      size="md"
+                      class="form-control"
+                      aria-label="Large select example"
+                      v-model.trim="form.gender"
                       :class="{
                         'is-invalid': submitted && isInvalid('gender'),
                       }"
-                      @change="validateField('gender')"
-                    >
-                    <option value="">Gender</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                   </CFormSelect>
+                      @change="validateField('gender')">
+                      <option value="">Gender</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </CFormSelect>
                     <CFormFeedback invalid> {{ errors?.gender?.message }}. </CFormFeedback>
                   </CCol>
+
+                  <!-- Religion -->
+                  <CCol md="6" class="mb-3">
+                    <CFormLabel>Religion</CFormLabel>
+                    <select
+                      v-model="form.religion_id"
+                      class="form-control"
+                      :class="{ 'is-invalid': submitted && isInvalid('religion_id') }"
+                      @change="validateField('religion_id')">
+                      <option :value="null">Select Religion</option>
+                      <option v-for="item in religions" :key="item.id" :value="item.id">
+                        {{ item.name }}
+                      </option>
+                    </select>
+                    <CFormFeedback invalid>
+                      {{ errors?.religion_id?.message }}
+                    </CFormFeedback>
+                  </CCol>
+
+                  <!-- Preferred Language -->
+                  <CCol md="6" class="mb-3">
+                    <CFormLabel>Preferred Language</CFormLabel>
+                    <select
+                      v-model="form.language_id"
+                      class="form-control"
+                      :class="{ 'is-invalid': submitted && isInvalid('language_id') }"
+                      @change="validateField('language_id')">
+                      <option :value="null">Select Language</option>
+                      <option v-for="item in languages" :key="item.id" :value="item.id">
+                        {{ item.name }}
+                      </option>
+                    </select>
+                    <CFormFeedback invalid>
+                      {{ errors?.language_id?.message }}
+                    </CFormFeedback>
+                  </CCol>
+
+                  <!-- Area -->
+                  <CCol md="6" class="mb-3">
+                    <CFormLabel>Area</CFormLabel>
+                    <select
+                      v-model="form.area_id"
+                      class="form-control"
+                      :class="{ 'is-invalid': submitted && isInvalid('area_id') }"
+                      @change="validateField('area_id')">
+                      <option :value="null">Select Area</option>
+                      <option v-for="item in areas" :key="item.id" :value="item.id">
+                        {{ item.name }}
+                      </option>
+                    </select>
+                    <CFormFeedback invalid>
+                      {{ errors?.area_id?.message }}
+                    </CFormFeedback>
+                  </CCol>
+
                   <CCol md="6" class="mb-3">
                     <!-- Email -->
                     <CFormLabel>Email</CFormLabel>
@@ -1301,8 +1399,8 @@ try {
                   <CCol md="6" class="mb-3">
                     <!-- Designation -->
                     <CFormLabel>Designation</CFormLabel>
-                    <select  v-model="form.designation"
-
+                    <select
+                      v-model="form.designation"
                       class="form-control"
                       :class="{
                         'is-invalid': submitted && isInvalid('designation'),
@@ -1310,12 +1408,9 @@ try {
                       @change="validateField('designation')">
                       <option :value="null">Designation</option>
                       <!-- Loop starts here -->
-                        <option
-                            v-for="item in designations"
-                            :key="item.id"
-                            :value="item.id">
-                            {{ item.name }}
-                        </option>
+                      <option v-for="item in designations" :key="item.id" :value="item.id">
+                        {{ item.name }}
+                      </option>
                     </select>
 
                     <CFormFeedback invalid>
@@ -1696,29 +1791,23 @@ try {
     alignment="center"
     @close="
       () => {
-        visibleLiveDemo = false
+        visibleLiveDemo = false;
       }
-    "
-  >
+    ">
     <CModalHeader>
       <CModalTitle id="LiveDemoExampleLabel">View Enrolment</CModalTitle>
     </CModalHeader>
-    <CModalBody> <ViewEnrolment v-if="viewData":data="viewData"/>
-    </CModalBody>
+    <CModalBody> <ViewEnrolment v-if="viewData" :data="viewData" /> </CModalBody>
     <CModalFooter>
       <CButton
         color="secondary"
         @click="
           () => {
-            visibleLiveDemo = false
+            visibleLiveDemo = false;
           }
-        "
-      >
+        ">
         Close
       </CButton>
     </CModalFooter>
   </CModal>
 </template>
-
-
-

@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/subscription-plan/status/toggle', [SubscriptionPlanController::class, 'toogleStatus']);
         Route::post('/subscription-plan/remove', [SubscriptionPlanController::class, 'destroy']);
         Route::post('/placement-request', [EnrolmentController::class, 'placement_request']);
+        Route::post('/masters', [MasterController::class, 'index']);
     });
     // Hospital Role Restricted Routes
     Route::middleware('role:admin')->group(function () {

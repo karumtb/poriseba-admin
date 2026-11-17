@@ -29,7 +29,8 @@ class PatientServiceRequirement extends Model
         'service_details',
         'expected_fee_range',
         'additional_facilities',
-
+        'preferred_language',
+        'preferred_religion',
         'status',
     ];
 
@@ -45,6 +46,31 @@ class PatientServiceRequirement extends Model
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
+    }
+
+    public function preferred_religion(): BelongsTo
+    {
+        return $this->belongsTo(
+            Religion::class,
+            'preferred_religion',
+            'id'
+        );
+    }
+    public function preferred_area(): BelongsTo
+    {
+        return $this->belongsTo(
+            Area::class,
+            'service_location_area',
+            'id'
+        );
+    }
+    public function preferred_language(): BelongsTo
+    {
+        return $this->belongsTo(
+            Language::class,
+            'preferred_language',
+            'id'
+        );
     }
 
     /**

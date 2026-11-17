@@ -20,6 +20,7 @@ class PatientController extends Controller
     /**
      * Patient validation rules.
      */
+
     private function validationRules(): array
     {
         $documentRules = [
@@ -82,10 +83,15 @@ class PatientController extends Controller
             'service_location' => ['required', 'string', 'max:150'],
             'service_location_area' => ['nullable', 'string', 'max:255'],
             'service_city' => ['nullable', 'string', 'max:100'],
+
             'caregiver_gender' => [
                 'nullable',
                 Rule::in(['Any', 'Male', 'Female'])
             ],
+
+            // Preferred caregiver preferences (optional)
+            'preferred_language' => ['nullable', 'string', 'max:100'],
+            'preferred_religion' => ['nullable', 'string', 'max:100'],
 
             // Service details
             'service_details' => ['nullable', 'string'],
@@ -109,6 +115,7 @@ class PatientController extends Controller
         ];
     }
 
+
     /**
      * Service requirement fields.
      */
@@ -128,6 +135,8 @@ class PatientController extends Controller
             'service_details',
             'expected_fee_range',
             'additional_facilities',
+            'preferred_religion',
+            'preferred_language'
         ];
     }
 
@@ -162,6 +171,7 @@ class PatientController extends Controller
         ];
 
         $serviceFields = $this->serviceRequirementFields();
+
 
         /*
          * Separate patient data and service requirement data.
@@ -347,6 +357,7 @@ class PatientController extends Controller
                     }
 
                     // Update service requirement fields.
+
                     if ($hasServiceData) {
                         $requirement->fill($serviceData);
                         $requirement->save();

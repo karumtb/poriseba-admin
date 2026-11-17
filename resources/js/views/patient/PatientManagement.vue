@@ -325,6 +325,21 @@ const {
   dietaryPreferences: { default: '', required: false },
 });
 
+const religions = [
+  { label: 'Any', value: 'Any' },
+  { label: 'Hinduism', value: 'Hinduism' },
+  { label: 'Islam', value: 'Islam' },
+  { label: 'Christianity', value: 'Christianity' },
+  { label: 'Others', value: 'Others' },
+];
+
+const languages = [
+  { label: 'Any', value: 'Any' },
+  { label: 'Bengali', value: 'Bengali' },
+  { label: 'Hindi', value: 'Hindi' },
+  { label: 'English', value: 'English' },
+];
+
 const {
   form: careForm,
   errors: careErrors,
@@ -360,6 +375,8 @@ const {
   locationArea: { default: '', required: false },
   locationCity: { default: '', required: false },
   caregiverGender: { default: '', required: false },
+  preferredLanguage: { default: '', required: false },
+  preferredReligion: { default: '', required: false },
   serviceDetails: {
     default: '',
     required: true,
@@ -511,67 +528,6 @@ const requestTabs = [
   { label: 'Other Services', count: 0 },
 ];
 
-const serviceRequests = ref([
-  {
-    id: 1,
-    requestId: 'SR-2026-001',
-    serviceType: 'Caregiver Replacement',
-    requestDate: '05 Oct 2026',
-    details: 'Current caregiver not available. Need replacement from 06 Oct 2026.',
-    assignedTo: 'Operations',
-    status: 'Pending',
-    expectedDate: '06 Oct 2026',
-    category: 'Caregiver Replacement',
-  },
-  {
-    id: 2,
-    requestId: 'SR-2026-002',
-    serviceType: 'Ambulance Requirement',
-    requestDate: '08 Oct 2026',
-    details: 'Need ambulance for hospital visit (Respiratory check-up at Apollo, Salt Lake).',
-    assignedTo: 'Ambulance Team',
-    status: 'Confirmed',
-    expectedDate: '09 Oct 2026',
-    category: 'Ambulance',
-  },
-  {
-    id: 3,
-    requestId: 'SR-2026-003',
-    serviceType: 'Medical Consumables',
-    requestDate: '10 Oct 2026',
-    details: 'Diapers (M) – 2 packs, Gloves – 1 box, Adult Wipes – 1 pack.',
-    assignedTo: 'Consumables Team',
-    status: 'Delivered',
-    expectedDate: '11 Oct 2026',
-    category: 'Consumables',
-  },
-]);
-
-const newRequest = ref({
-  serviceType: 'Caregiver Replacement',
-  details: '',
-  expectedDate: '2026-10-31',
-});
-
-const filteredRequests = computed(() => {
-  let rows = serviceRequests.value;
-
-  if (activeRequestTab.value !== 'All Requests') {
-    rows = rows.filter((item) => item.category === activeRequestTab.value);
-  }
-
-  const search = searchText.value.trim().toLowerCase();
-  if (search) {
-    rows = rows.filter((item) =>
-      [item.requestId, item.serviceType, item.details, item.assignedTo, item.status].some((value) =>
-        String(value).toLowerCase().includes(search)
-      )
-    );
-  }
-
-  return rows;
-});
-
 const setRequestTab = (tab) => {
   activeRequestTab.value = tab;
   currentPage.value = 1;
@@ -623,6 +579,26 @@ const nextStep = async () => {
 
 const triggerDocumentUpload = (inputElement) => {
   inputElement?.click();
+};
+const handleNumericInput = async (event, field, length) => {
+  const value = event.target.value.replace(/\D/g, '').slice(0, length);
+
+  basicForm[field] = value;
+  event.target.value = value;
+
+  await nextTick();
+
+  validateBasicField(field);
+};
+const handleStringInput = async (event, field) => {
+  const value = event.target.value.replace(/[^\p{L}\s]/gu, '');
+
+  basicForm[field] = value;
+  event.target.value = value;
+
+  await nextTick();
+
+  validateBasicField(field);
 };
 
 // Convert Date objects and date-like values to Laravel's YYYY-MM-DD format.
@@ -678,10 +654,12 @@ const buildPatientFormData = () => {
     service_location_area: careForm.locationArea,
     service_city: careForm.locationCity,
     caregiver_gender: careForm.caregiverGender,
+    preferred_language: careForm.preferredLanguage,
+    preferred_religion: careForm.preferredReligion,
     service_details: careForm.serviceDetails,
     expected_fee_range: careForm.feeRange,
   };
-
+  console.log(fields);
   Object.entries(fields).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
       payload.append(key, String(value));
@@ -913,6 +891,8 @@ const editPatient = async (id) => {
         locationArea: service.service_location_area || '',
         locationCity: service.service_city || '',
         caregiverGender: service.caregiver_gender || '',
+        preferredLanguage: service.preferred_language || '',
+        preferredReligion: service.preferred_religion || '',
         serviceDetails: service.service_details || '',
         feeRange: service.expected_fee_range || '',
         additionalFacilities: Array.isArray(service.additional_facilities) ? [...service.additional_facilities] : [],
@@ -967,7 +947,11 @@ const editPatient = async (id) => {
 // Draft persistence needs a separate backend endpoint/status contract.
 // Until that endpoint exists, do not display a misleading "saved" message.
 const saveDraft = () => {
-  toast.info(isEditMode.value ? 'Use Update to save your patient changes.' : 'Draft saving is not connected yet. Use Finish & Onboard to submit the patient.');
+  toast.info(
+    isEditMode.value
+      ? 'Use Update to save your patient changes.'
+      : 'Draft saving is not connected yet. Use Finish & Onboard to submit the patient.'
+  );
 };
 
 const triggerAgreementUpload = () => {
@@ -1073,9 +1057,7 @@ const formatDate = (date) => {
   }
 
   // Date pickers may provide a Date object, while API/list values are strings.
-  const formattedDate = date instanceof Date
-    ? date
-    : new Date(String(date).replace(' ', 'T'));
+  const formattedDate = date instanceof Date ? date : new Date(String(date).replace(' ', 'T'));
 
   if (Number.isNaN(formattedDate.getTime())) {
     return '-';
@@ -1240,7 +1222,7 @@ onMounted(() => {
                             v-model="basicForm.patientName"
                             placeholder="Enter patient name"
                             :class="{ 'is-invalid': isBasicInvalid('patientName') }"
-                            @input="validateBasicField('patientName')" />
+                            @input="handleStringInput($event, 'patientName')" />
 
                           <CFormFeedback invalid> {{ basicErrors?.patientName?.message }}. </CFormFeedback>
                         </div>
@@ -1280,8 +1262,7 @@ onMounted(() => {
                   <CCardHeader class="pb-section-title">
                     <!--<CIcon :icon="cilLocationPin" /> -->
                     Contact & Address
-                  </CCardHeader
-                  >
+                  </CCardHeader>
                   <CCardBody>
                     <div class="row g-3">
                       <div class="col-lg-4 col-md-6">
@@ -1314,10 +1295,7 @@ onMounted(() => {
                             placeholder="Enter phone number"
                             :class="{ 'is-invalid': isBasicInvalid('phoneNumber') }"
                             maxlength="10"
-                            @input="
-                              $event.target.value = $event.target.value.replace(/\D/g, '');
-                              validateBasicField('phoneNumber');
-                            " />
+                            @input="handleNumericInput($event, 'phoneNumber', 10)" />
                           <CFormFeedback invalid>{{ basicErrors?.phoneNumber?.message }}</CFormFeedback>
                         </div>
                       </div>
@@ -1395,10 +1373,7 @@ onMounted(() => {
                             v-model="basicForm.pinCode"
                             placeholder="Enter PIN"
                             :class="{ 'is-invalid': isBasicInvalid('pinCode') }"
-                            @input="
-                              $event.target.value = $event.target.value.replace(/\D/g, '');
-                              validateBasicField('pinCode');
-                            " />
+                            @input="handleNumericInput($event, 'pinCode', 6)" />
                         </div>
                       </div>
 
@@ -1654,6 +1629,24 @@ onMounted(() => {
                           </div>
                         </div>
                       </div>
+
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Preferred Language</label>
+                          <CFormSelect
+                            v-model="careForm.preferredLanguage"
+                            :options="[{ label: 'Select language', value: '' }, ...languages]" />
+                        </div>
+                      </div>
+
+                      <div class="col-lg-3 col-md-6">
+                        <div class="field-group">
+                          <label class="pb-label">Preferred Religion</label>
+                          <CFormSelect
+                            v-model="careForm.preferredReligion"
+                            :options="[{ label: 'Select religion', value: '' }, ...religions]" />
+                        </div>
+                      </div>
                     </div>
                   </CCardBody>
                 </div>
@@ -1792,19 +1785,22 @@ onMounted(() => {
                               <CButton color="primary" variant="outline" @click="triggerDocumentUpload(idProofInput)">
                                 {{ idProofDisplayUrl ? 'Replace File' : 'Upload File' }}
                               </CButton>
-                              <a v-if="idProofDisplayUrl" :href="idProofDisplayUrl" target="_blank" rel="noopener" class="btn btn-outline-info ms-2 view-btn"
-                                >
+                              <a
+                                v-if="idProofDisplayUrl"
+                                :href="idProofDisplayUrl"
+                                target="_blank"
+                                rel="noopener"
+                                class="btn btn-outline-info ms-2 view-btn">
                                 <CIcon :icon="cilLowVision" />
-                                </a
-                              >
+                              </a>
                               <CButton
                                 v-if="idProofDisplayUrl"
-                               color="warning"
+                                color="warning"
                                 variant="outline"
                                 class="ms-2"
                                 @click="clearIdProofFile(idProofInput)"
-                                ><CIcon :icon="cilTrash" /></CButton
-                              >
+                                ><CIcon :icon="cilTrash"
+                              /></CButton>
                             </div>
                           </div>
                           <div v-if="idProofFileError" class="text-danger small mt-2">{{ idProofFileError }}</div>
@@ -1842,16 +1838,16 @@ onMounted(() => {
                                 target="_blank"
                                 rel="noopener"
                                 class="btn btn-outline-info ms-2 view-btn"
-                                ><CIcon :icon="cilLowVision" /></a
-                              >
+                                ><CIcon :icon="cilLowVision"
+                              /></a>
                               <CButton
                                 v-if="medicalReportsDisplayUrl"
                                 color="warning"
                                 variant="outline"
                                 class="ms-2"
                                 @click="clearMedicalReportsFile(medicalReportsInput)"
-                                ><CIcon :icon="cilTrash" /></CButton
-                              >
+                                ><CIcon :icon="cilTrash"
+                              /></CButton>
                             </div>
                           </div>
                           <div v-if="medicalReportsFileError" class="text-danger small mt-2">{{ medicalReportsFileError }}</div>
@@ -1889,16 +1885,16 @@ onMounted(() => {
                                 target="_blank"
                                 rel="noopener"
                                 class="btn btn-outline-info ms-2 view-btn"
-                                ><CIcon :icon="cilLowVision" /></a
-                              >
+                                ><CIcon :icon="cilLowVision"
+                              /></a>
                               <CButton
                                 v-if="consentFormDisplayUrl"
-                               color="warning"
+                                color="warning"
                                 variant="outline"
                                 class="ms-2"
                                 @click="clearConsentFormFile(consentFormInput)"
-                                ><CIcon :icon="cilTrash" /></CButton
-                              >
+                                ><CIcon :icon="cilTrash"
+                              /></CButton>
                             </div>
                           </div>
                           <div v-if="consentFormFileError" class="text-danger small mt-2">{{ consentFormFileError }}</div>
@@ -1936,16 +1932,16 @@ onMounted(() => {
                                 target="_blank"
                                 rel="noopener"
                                 class="btn btn-outline-info ms-2 view-btn"
-                                ><CIcon :icon="cilLowVision" /></a
-                              >
+                                ><CIcon :icon="cilLowVision"
+                              /></a>
                               <CButton
                                 v-if="privacyDocumentDisplayUrl"
                                 color="warning"
                                 variant="outline"
                                 class="ms-2"
                                 @click="clearPrivacyDocumentFile(privacyDocumentInput)"
-                                ><CIcon :icon="cilTrash" /></CButton
-                              >
+                                ><CIcon :icon="cilTrash"
+                              /></CButton>
                             </div>
                           </div>
                           <div v-if="privacyDocumentFileError" class="text-danger small mt-2">{{ privacyDocumentFileError }}</div>
@@ -1970,52 +1966,130 @@ onMounted(() => {
                     <div class="review-summary-card">
                       <div class="review-summary-card-header review-header-blue">Basic Information &amp; Contact</div>
                       <div class="review-summary-card-body">
-                        <div class="review-value-row"><span>Patient ID</span><strong>{{ patient.code || 'Generated after saving' }}</strong></div>
-                        <div class="review-value-row"><span>Patient Name</span><strong>{{ basicForm.patientName || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Date of Birth</span><strong>{{ formatDate(basicForm.dateOfBirth) || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Age</span><strong>{{ basicForm.age || patient.age || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Gender</span><strong>{{ basicForm.gender || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Primary Contact</span><strong>{{ basicForm.primaryContactName || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Relationship</span><strong>{{ basicForm.relationship || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Phone Number</span><strong>{{ basicForm.phoneNumber || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Alternate Number</span><strong>{{ basicForm.alternateNumber || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Emergency Contact</span><strong>{{ basicForm.emergencyContactName || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Emergency Phone</span><strong>{{ basicForm.emergencyPhone || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Address</span><strong>{{ basicForm.address || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Location</span><strong>{{ [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') || '-' }}</strong></div>
+                        <div class="review-value-row">
+                          <span>Patient ID</span><strong>{{ patient.code || 'Generated after saving' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Patient Name</span><strong>{{ basicForm.patientName || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Date of Birth</span><strong>{{ formatDate(basicForm.dateOfBirth) || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Age</span><strong>{{ basicForm.age || patient.age || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Gender</span><strong>{{ basicForm.gender || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Primary Contact</span><strong>{{ basicForm.primaryContactName || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Relationship</span><strong>{{ basicForm.relationship || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Phone Number</span><strong>{{ basicForm.phoneNumber || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Alternate Number</span><strong>{{ basicForm.alternateNumber || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Emergency Contact</span><strong>{{ basicForm.emergencyContactName || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Emergency Phone</span><strong>{{ basicForm.emergencyPhone || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Address</span><strong>{{ basicForm.address || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Location</span
+                          ><strong>{{
+                            [basicForm.locationArea, basicForm.city, basicForm.state, basicForm.pinCode].filter(Boolean).join(', ') || '-'
+                          }}</strong>
+                        </div>
                       </div>
                     </div>
 
                     <div class="review-summary-card">
                       <div class="review-summary-card-header review-header-red">Medical / Care Information</div>
                       <div class="review-summary-card-body">
-                        <div class="review-value-row"><span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Secondary Diagnosis</span><strong>{{ medicalForm.secondaryDiagnosis || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Chronic Conditions</span><strong>{{ medicalForm.chronicConditions || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Medical History</span><strong>{{ medicalForm.medicalHistory || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Special Care Needs</span><strong>{{ medicalForm.specialCareNeeds || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Dietary Preferences</span><strong>{{ medicalForm.dietaryPreferences || '-' }}</strong></div>
+                        <div class="review-value-row">
+                          <span>Primary Diagnosis</span><strong>{{ medicalForm.primaryDiagnosis || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Secondary Diagnosis</span><strong>{{ medicalForm.secondaryDiagnosis || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Health Status</span><strong>{{ medicalForm.healthStatus || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Allergies</span><strong>{{ medicalForm.allergies || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Chronic Conditions</span><strong>{{ medicalForm.chronicConditions || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Medical History</span><strong>{{ medicalForm.medicalHistory || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Current Medications</span><strong>{{ medicalForm.currentMedications || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Special Care Needs</span><strong>{{ medicalForm.specialCareNeeds || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Dietary Preferences</span><strong>{{ medicalForm.dietaryPreferences || '-' }}</strong>
+                        </div>
                       </div>
                     </div>
 
                     <div class="review-summary-card">
                       <div class="review-summary-card-header review-header-green">Service Requirement</div>
                       <div class="review-summary-card-body">
-                        <div class="review-value-row"><span>Care Type</span><strong>{{ careForm.careType || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Service Category</span><strong>{{ careForm.serviceCategory || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Start Date</span><strong>{{ formatDate(careForm.startDate) || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Duration</span><strong>{{ [careForm.duration, careForm.durationUnit].filter(Boolean).join(' ') || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Duty Hours</span><strong>{{ careForm.dutyHours || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Service Location</span><strong>{{ careForm.serviceLocation || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Location Area</span><strong>{{ careForm.locationArea || '-' }}</strong></div>
-                        <div class="review-value-row"><span>City</span><strong>{{ careForm.locationCity || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Caregiver Gender</span><strong>{{ careForm.caregiverGender || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Expected Fee Range</span><strong>{{ careForm.feeRange || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Service Details</span><strong>{{ careForm.serviceDetails || '-' }}</strong></div>
-                        <div class="review-value-row"><span>Additional Facilities</span><strong>{{ (careForm.additionalFacilities || []).join(', ') || '-' }}</strong></div>
+                        <div class="review-value-row">
+                          <span>Care Type</span><strong>{{ careForm.careType || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Service Category</span><strong>{{ careForm.serviceCategory || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Start Date</span><strong>{{ formatDate(careForm.startDate) || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Duration</span
+                          ><strong>{{ [careForm.duration, careForm.durationUnit].filter(Boolean).join(' ') || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Duty Hours</span><strong>{{ careForm.dutyHours || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Service Location</span><strong>{{ careForm.serviceLocation || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Location Area</span><strong>{{ careForm.locationArea || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>City</span><strong>{{ careForm.locationCity || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Caregiver Gender</span><strong>{{ careForm.caregiverGender || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Preferred Language</span><strong>{{ careForm.preferredLanguage || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Preferred Religion</span><strong>{{ careForm.preferredReligion || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Expected Fee Range</span><strong>{{ careForm.feeRange || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Service Details</span><strong>{{ careForm.serviceDetails || '-' }}</strong>
+                        </div>
+                        <div class="review-value-row">
+                          <span>Additional Facilities</span><strong>{{ (careForm.additionalFacilities || []).join(', ') || '-' }}</strong>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2023,11 +2097,21 @@ onMounted(() => {
                   <div class="review-summary-card review-documents-card">
                     <div class="review-summary-card-header">Consent &amp; Documents</div>
                     <div class="review-summary-card-body review-documents-grid">
-                      <div class="review-value-row"><span>Patient Photo</span><strong>{{ photoDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
-                      <div class="review-value-row"><span>ID Proof</span><strong>{{ idProofDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
-                      <div class="review-value-row"><span>Medical Reports</span><strong>{{ medicalReportsDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
-                      <div class="review-value-row"><span>Consent Form</span><strong>{{ consentFormDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
-                      <div class="review-value-row"><span>Privacy Document</span><strong>{{ privacyDocumentDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong></div>
+                      <div class="review-value-row">
+                        <span>Patient Photo</span><strong>{{ photoDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                      </div>
+                      <div class="review-value-row">
+                        <span>ID Proof</span><strong>{{ idProofDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                      </div>
+                      <div class="review-value-row">
+                        <span>Medical Reports</span><strong>{{ medicalReportsDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                      </div>
+                      <div class="review-value-row">
+                        <span>Consent Form</span><strong>{{ consentFormDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                      </div>
+                      <div class="review-value-row">
+                        <span>Privacy Document</span><strong>{{ privacyDocumentDisplayUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2265,24 +2349,95 @@ onMounted(() => {
   min-width: 0;
 }
 
-
 /* Review tab: use explicit layout so the summary remains visible in both create and edit modes. */
-.review-content-wrapper { display: block !important; width: 100%; }
-.review-section-title { display: block; margin-bottom: 18px; color: #24324b; }
-.review-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
-.review-summary-card { min-width: 0; height: 100%; overflow: hidden; border: 1px solid #dce5f1; border-radius: 8px; background: #fff; }
-.review-summary-card-header { padding: 12px 15px; font-weight: 700; color: #24324b; background: #f4f7fb; border-bottom: 1px solid #dce5f1; }
-.review-header-blue { background: #edf4ff; }
-.review-header-red { background: #fff0f0; }
-.review-header-green { background: #effaf3; }
-.review-summary-card-body { display: block !important; padding: 12px 15px; }
-.review-value-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 8px 0; border-bottom: 1px solid #edf0f5; font-size: 13px; }
-.review-value-row:last-child { border-bottom: 0; }
-.review-value-row > span { flex: 0 0 42%; color: #718096; }
-.review-value-row > strong { flex: 1; min-width: 0; color: #263449; font-weight: 600; text-align: right; overflow-wrap: anywhere; white-space: pre-wrap; }
-.review-documents-card { margin-top: 16px; height: auto; }
-.review-documents-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
-@media (max-width: 991px) { .review-summary-grid { grid-template-columns: 1fr; } }
-@media (max-width: 575px) { .review-documents-grid { grid-template-columns: 1fr; } .review-value-row { gap: 8px; } }
-
+.review-content-wrapper {
+  display: block !important;
+  width: 100%;
+}
+.review-section-title {
+  display: block;
+  margin-bottom: 18px;
+  color: #24324b;
+}
+.review-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.review-summary-card {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #dce5f1;
+  border-radius: 8px;
+  background: #fff;
+}
+.review-summary-card-header {
+  padding: 12px 15px;
+  font-weight: 700;
+  color: #24324b;
+  background: #f4f7fb;
+  border-bottom: 1px solid #dce5f1;
+}
+.review-header-blue {
+  background: #edf4ff;
+}
+.review-header-red {
+  background: #fff0f0;
+}
+.review-header-green {
+  background: #effaf3;
+}
+.review-summary-card-body {
+  display: block !important;
+  padding: 12px 15px;
+}
+.review-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 13px;
+}
+.review-value-row:last-child {
+  border-bottom: 0;
+}
+.review-value-row > span {
+  flex: 0 0 42%;
+  color: #718096;
+}
+.review-value-row > strong {
+  flex: 1;
+  min-width: 0;
+  color: #263449;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.review-documents-card {
+  margin-top: 16px;
+  height: auto;
+}
+.review-documents-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+@media (max-width: 991px) {
+  .review-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 575px) {
+  .review-documents-grid {
+    grid-template-columns: 1fr;
+  }
+  .review-value-row {
+    gap: 8px;
+  }
+}
 </style>

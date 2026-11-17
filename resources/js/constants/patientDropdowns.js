@@ -88,4 +88,17 @@ export const PATIENT_DROPDOWNS = {
     { label: '10', value: 10 },
     { label: '25', value: 25 },
   ],
+  religions: [
+    { label: 'Any', value: 'Any' },
+    { label: 'Hinduism', value: 'Hinduism' },
+    { label: 'Islam', value: 'Islam' },
+    { label: 'Christianity', value: 'Christianity' },
+    { label: 'Others', value: 'Others' },
+  ],
+  languages: [
+    { label: 'Any', value: 'Any' },
+    { label: 'Bengali', value: 'Bengali' },
+    { label: 'Hindi', value: 'Hindi' },
+    { label: 'English', value: 'English' },
+  ],
 };

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use App\Http\Controllers\Controller;
 use App\Models\Enrolment;
 use App\Models\PlacementApplication;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EnrolmentController extends Controller
 {
-     /**
+    /**
      * List enrolments
      */
     public function index(Request $request)
@@ -23,94 +24,90 @@ class EnrolmentController extends Controller
         $user = Auth::user();
 
         $query = Enrolment::query()
-                ->with(['vendor','designation'])
-                ->select(['id','first_name','last_name','vendor_id','phone','status','profile_photo','designation','hospital_id','highest_qualification','address'])
-                ->selectRaw("CONCAT(first_name, ' ', last_name) as name");
+            ->with(['vendor', 'designation'])
+            ->select(['id', 'first_name', 'last_name', 'vendor_id', 'phone', 'status', 'profile_photo', 'designation', 'hospital_id', 'highest_qualification', 'address'])
+            ->selectRaw("CONCAT(first_name, ' ', last_name) as name");
 
-            // Vendor can only see his own enrolments
-            if ($user->role === 'vendor') {
-                $query->where('vendor_id', $user->id);
-            }
-            if ($user->role === 'hospital') {
-              $query->whereNull('hospital_id');
-            }
-            if($user->role!='admin')
-            {
-             $query->where('status', 'A');
-            }
-            $perPage = $request->input('per_page', 10);
+        // Vendor can only see his own enrolments
+        if ($user->role === 'vendor') {
+            $query->where('vendor_id', $user->id);
+        }
+        if ($user->role === 'hospital') {
+            $query->whereNull('hospital_id');
+        }
+        if ($user->role != 'admin') {
+            $query->where('status', 'A');
+        }
+        $perPage = $request->input('per_page', 10);
 
-            $search = trim($request->input('keyword', ''));
-            $status = trim($request->input('status', ''));
+        $search = trim($request->input('keyword', ''));
+        $status = trim($request->input('status', ''));
 
 
-            if (!empty($search)) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereRaw(
-                        "CONCAT(first_name, ' ', last_name) LIKE ?",
-                        ["%{$search}%"]
-                    )
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw(
+                    "CONCAT(first_name, ' ', last_name) LIKE ?",
+                    ["%{$search}%"]
+                )
                     ->orWhere('designation', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
-                });
-            }
-            if(!empty($request->designation))
-            {
-                $query->where('designation', $request->designation);
-            }
-            if(!empty($status))
-            {
-                $query->where('status',$status);
-            }
+            });
+        }
+        if (!empty($request->designation)) {
+            $query->where('designation', $request->designation);
+        }
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
 
-            $enrolments = $query->latest()->paginate($perPage);
+        $enrolments = $query->latest()->paginate($perPage);
 
-            return response()->json([
-                'status' => true,
-                'data' => $enrolments,
-            ]);
+        return response()->json([
+            'status' => true,
+            'data' => $enrolments,
+        ]);
     }
 
-        /**
+    /**
      * List Placement Application
      */
     public function placement_request(Request $request)
     {
         try {
-         $query = ViewPlacementApplication::query();
-        // Search
-        if ($request->filled('keyword')) {
-            $search = $request->keyword;
+            $query = ViewPlacementApplication::query();
+            // Search
+            if ($request->filled('keyword')) {
+                $search = $request->keyword;
 
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                ->orWhere('phone', 'LIKE', "%{$search}%")
-                ->orWhere('hospital', 'LIKE', "%{$search}%")
-                ->orWhere('vendor', 'LIKE', "%{$search}%");
-            });
-        }
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('phone', 'LIKE', "%{$search}%")
+                        ->orWhere('hospital', 'LIKE', "%{$search}%")
+                        ->orWhere('vendor', 'LIKE', "%{$search}%");
+                });
+            }
 
-        // Designation filter
-        if ($request->filled('designation')) {
-            $query->where('designation_id', $request->designation);
-        }
+            // Designation filter
+            if ($request->filled('designation')) {
+                $query->where('designation_id', $request->designation);
+            }
 
-        $applications = $query
-        ->orderByDesc('id')
-        ->paginate($request->get('per_page', 10));
+            $applications = $query
+                ->orderByDesc('id')
+                ->paginate($request->get('per_page', 10));
 
-        return response()->json([
-            'status' => true,
-            'data' => $applications,
-        ]);
+            return response()->json([
+                'status' => true,
+                'data' => $applications,
+            ]);
         } catch (\Throwable $th) {
             //throw $th;
             return response()->json([
-            'success' => false,
-            'data' => $th->getMessage(),
-        ]);
+                'success' => false,
+                'data' => $th->getMessage(),
+            ]);
         }
-
     }
 
 
@@ -138,7 +135,6 @@ class EnrolmentController extends Controller
                     'message' => 'Enrolment not found',
                 ], 404);
             }
-
         } else {
             $enrolment = new Enrolment();
         }
@@ -153,7 +149,6 @@ class EnrolmentController extends Controller
 
             // Vendor can only use his own ID
             $vendorId = $user->id;
-
         } else {
 
             $request->validate([
@@ -180,7 +175,7 @@ class EnrolmentController extends Controller
                 'max:255',
             ],
 
-             'last_name' => [
+            'last_name' => [
                 'required',
                 'string',
                 'max:255',
@@ -196,9 +191,9 @@ class EnrolmentController extends Controller
             'phone' => [
                 'required',
                 'regex:/^[0-9]{10}$/',
-                  Rule::unique('enrolments', 'phone')->ignore($id)->withoutTrashed(),
+                Rule::unique('enrolments', 'phone')->ignore($id)->withoutTrashed(),
             ],
-           'designation' => [
+            'designation' => [
                 'required',
                 'integer',
                 Rule::exists('designations', 'id'),
@@ -214,11 +209,11 @@ class EnrolmentController extends Controller
                 'required',
                 'string',
             ],
-             'placement_start' => [
+            'placement_start' => [
                 'nullable',
                 'date',
             ],
-             'placement_end' => [
+            'placement_end' => [
                 'nullable',
                 'date',
             ],
@@ -324,7 +319,10 @@ class EnrolmentController extends Controller
             'fb_reviews',
             'insta_reviews',
             'google_reviews',
-            'gender'
+            'gender',
+            'religion_id',
+            'language_id',
+            'area_id'
         ]);
 
         // Always use the authenticated/validated vendor
@@ -333,7 +331,7 @@ class EnrolmentController extends Controller
         $enrolment->fill($data);
 
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | Profile Photo
         |--------------------------------------------------------------------------
@@ -451,7 +449,7 @@ class EnrolmentController extends Controller
 
         $user = Auth::user();
 
-        $query = Enrolment::with(['vendor','designation','past_experience.hospital'])
+        $query = Enrolment::with(['vendor', 'designation', 'past_experience.hospital', 'religion', 'area', 'language'])
 
             ->where('id', $request->id);
 
@@ -468,10 +466,10 @@ class EnrolmentController extends Controller
                 'message' => 'Enrolment not found',
             ], 404);
         }
-        $enrolment->remark=!empty($enrolment->remark)?$enrolment->remark:'';
-        $enrolment->fb_reviews=!empty($enrolment->fb_reviews)?$enrolment->fb_reviews:'';
-        $enrolment->insta_reviews=!empty($enrolment->insta_reviews)?$enrolment->insta_reviews:'';
-        $enrolment->google_reviews=!empty($enrolment->google_reviews)?$enrolment->google_reviews:'';
+        $enrolment->remark = !empty($enrolment->remark) ? $enrolment->remark : '';
+        $enrolment->fb_reviews = !empty($enrolment->fb_reviews) ? $enrolment->fb_reviews : '';
+        $enrolment->insta_reviews = !empty($enrolment->insta_reviews) ? $enrolment->insta_reviews : '';
+        $enrolment->google_reviews = !empty($enrolment->google_reviews) ? $enrolment->google_reviews : '';
         return response()->json([
             'status' => true,
             'data' => $enrolment,
@@ -516,12 +514,10 @@ class EnrolmentController extends Controller
 
         if ($enrolment->adhar_pdf) {
             unlink(public_path($enrolment->adhar_pdf));
-
         }
 
         if ($enrolment->certificate_pdf) {
-         unlink(public_path($enrolment->certificate_pdf));
-
+            unlink(public_path($enrolment->certificate_pdf));
         }
 
 
@@ -545,17 +541,17 @@ class EnrolmentController extends Controller
 
         $enrolment = Enrolment::where('id', $request->id)->first();
         EnrolmentHiring::where('hospital_id', $enrolment->hospital_id)
-        ->where('enrolment_id', $enrolment->id)
-        ->whereNull('released_at')
-        ->update([
-            'released_at' => now()->toDateString(),
-        ]);
-         PlacementApplication::where('hospital_id', $enrolment->hospital_id)
-        ->where('enrolment_id', $enrolment->id)
-        ->where('status','A')
-        ->update([
-            'status' => 'R',
-        ]);
+            ->where('enrolment_id', $enrolment->id)
+            ->whereNull('released_at')
+            ->update([
+                'released_at' => now()->toDateString(),
+            ]);
+        PlacementApplication::where('hospital_id', $enrolment->hospital_id)
+            ->where('enrolment_id', $enrolment->id)
+            ->where('status', 'A')
+            ->update([
+                'status' => 'R',
+            ]);
         $enrolment->update(['hospital_id' => NULL]);
         return response()->json([
             'status' => true,
@@ -567,7 +563,7 @@ class EnrolmentController extends Controller
      */
     public function bulkApprove(Request $request)
     {
-       $rules = [
+        $rules = [
             'ids' => [
                 'required',
                 'array',
@@ -579,172 +575,171 @@ class EnrolmentController extends Controller
                 'integer',
                 'exists:enrolments,id',
             ],
-    ];
-
-     $validated = $request->validate($rules);
-
-
-
-      $updated = Enrolment::whereIn('id', $validated['ids'])
-        ->where('status', 'P')
-        ->update([
-            'status' => 'A',
-            'updated_at' => now(),
-        ]);
-
-     return response()->json([
-        'status' => true,
-        'message' => "{$updated} enrolments record(s) approved successfully.",
-        'data' => $updated,
-    ]);
-}
-
-     /**
-     * Bulk Hiring
-     */
-    public function bulkHiringRequest(Request $request)
-    {
-        $rules = [
-        'ids' => [
-            'required',
-            'array',
-            'min:1',
-        ],
-
-        'ids.*' => [
-            'required',
-            'integer',
-            'exists:enrolments,id',
-        ],
-    ];
-
-    $validated = $request->validate($rules);
-
-    // Hospital ID from JWT authenticated user
-    $hospitalId = auth()->id();
-
-    $now = now();
-
-    $applications = collect($validated['ids'])->map(function ($enrolmentId) use ($hospitalId, $now) {
-        return [
-            'enrolment_id' => $enrolmentId,
-            'hospital_id'  => $hospitalId,
-            'status'       => 'P',
-            'created_at'   => $now,
-            'updated_at'   => $now,
         ];
-    })->toArray();
 
-    $updated=PlacementApplication::upsert(
-        $applications,
-        ['enrolment_id', 'hospital_id'],
-        ['status', 'updated_at']
-    );
+        $validated = $request->validate($rules);
 
 
 
-    return response()->json([
-        'status' => true,
-        'message' => count($validated['ids']) . ' enrolment(s) have been submitted and are awaiting admin approval.',
-    ]);
- }
-     /**
-     * Bulk Approve Hiring Request
-     */
-   public function bulkApproveHiring(Request $request)
-{
-    $validated = $request->validate([
-        'ids' => [
-            'required',
-            'array',
-            'min:1',
-        ],
-
-        'ids.*' => [
-            'required',
-            'integer',
-            'exists:placement_applications,id',
-        ],
-    ]);
-
-    $ids = $validated['ids'];
-
-    try {
-
-
-        /*
-         * 1. Get selected Placement Applications
-         */
-        $applications = PlacementApplication::whereIn('id', $ids)
-            ->whereNotNull('enrolment_id')
-            ->get([
-                'id',
-                'enrolment_id',
-                'hospital_id',
-            ]);
-
-        /*
-         * 2. Bulk approve Placement Applications
-         */
-        $updated = PlacementApplication::whereIn('id', $ids)
+        $updated = Enrolment::whereIn('id', $validated['ids'])
+            ->where('status', 'P')
             ->update([
                 'status' => 'A',
                 'updated_at' => now(),
             ]);
 
-        /*
-         * 3. Update hospital_id in Enrolments
-         */
-        foreach ($applications as $application) {
-            Enrolment::where('id', $application->enrolment_id)
-                ->update([
-                    'hospital_id' => $application->hospital_id,
-                    'updated_at' => now(),
-                ]);
-        }
+        return response()->json([
+            'status' => true,
+            'message' => "{$updated} enrolments record(s) approved successfully.",
+            'data' => $updated,
+        ]);
+    }
 
-        /*
-         * 4. Prepare EnrolmentHiring records
-         */
+    /**
+     * Bulk Hiring
+     */
+    public function bulkHiringRequest(Request $request)
+    {
+        $rules = [
+            'ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'ids.*' => [
+                'required',
+                'integer',
+                'exists:enrolments,id',
+            ],
+        ];
+
+        $validated = $request->validate($rules);
+
+        // Hospital ID from JWT authenticated user
+        $hospitalId = auth()->id();
+
         $now = now();
 
-        $hiringData = $applications->map(function ($application) use ($now) {
+        $applications = collect($validated['ids'])->map(function ($enrolmentId) use ($hospitalId, $now) {
             return [
-                'enrolment_id' => $application->enrolment_id,
-                'hospital_id'  => $application->hospital_id,
-                'released_at'  => null,
+                'enrolment_id' => $enrolmentId,
+                'hospital_id'  => $hospitalId,
+                'status'       => 'P',
                 'created_at'   => $now,
                 'updated_at'   => $now,
             ];
         })->toArray();
 
-        /*
-         * 5. Bulk insert into EnrolmentHiring
-         */
-        if (!empty($hiringData)) {
-            EnrolmentHiring::insert($hiringData);
-        }
+        $updated = PlacementApplication::upsert(
+            $applications,
+            ['enrolment_id', 'hospital_id'],
+            ['status', 'updated_at']
+        );
 
 
 
         return response()->json([
             'status' => true,
-            'message' => "{$updated} enrolment(s) have been approved successfully.",
-            'data' => $updated,
-        ], 200);
-
-    } catch (\Throwable $e) {
-
-        DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to approve enrolments.',
-            'error' => $e->getMessage(),
-        ], 500);
+            'message' => count($validated['ids']) . ' enrolment(s) have been submitted and are awaiting admin approval.',
+        ]);
     }
-}
- /**
+    /**
+     * Bulk Approve Hiring Request
+     */
+    public function bulkApproveHiring(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'ids.*' => [
+                'required',
+                'integer',
+                'exists:placement_applications,id',
+            ],
+        ]);
+
+        $ids = $validated['ids'];
+
+        try {
+
+
+            /*
+         * 1. Get selected Placement Applications
+         */
+            $applications = PlacementApplication::whereIn('id', $ids)
+                ->whereNotNull('enrolment_id')
+                ->get([
+                    'id',
+                    'enrolment_id',
+                    'hospital_id',
+                ]);
+
+            /*
+         * 2. Bulk approve Placement Applications
+         */
+            $updated = PlacementApplication::whereIn('id', $ids)
+                ->update([
+                    'status' => 'A',
+                    'updated_at' => now(),
+                ]);
+
+            /*
+         * 3. Update hospital_id in Enrolments
+         */
+            foreach ($applications as $application) {
+                Enrolment::where('id', $application->enrolment_id)
+                    ->update([
+                        'hospital_id' => $application->hospital_id,
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            /*
+         * 4. Prepare EnrolmentHiring records
+         */
+            $now = now();
+
+            $hiringData = $applications->map(function ($application) use ($now) {
+                return [
+                    'enrolment_id' => $application->enrolment_id,
+                    'hospital_id'  => $application->hospital_id,
+                    'released_at'  => null,
+                    'created_at'   => $now,
+                    'updated_at'   => $now,
+                ];
+            })->toArray();
+
+            /*
+         * 5. Bulk insert into EnrolmentHiring
+         */
+            if (!empty($hiringData)) {
+                EnrolmentHiring::insert($hiringData);
+            }
+
+
+
+            return response()->json([
+                'status' => true,
+                'message' => "{$updated} enrolment(s) have been approved successfully.",
+                'data' => $updated,
+            ], 200);
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve enrolments.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    /**
      * Toogle Enrolment Status
      */
     public function toogleStatus(Request $request)
@@ -772,7 +767,7 @@ class EnrolmentController extends Controller
             'status' => $newStatus
         ]);
 
-    // Set custom alert messages based on the new status
+        // Set custom alert messages based on the new status
         $message = ($newStatus === 'A')
             ? 'Enrolment activated successfully.'
             : 'Enrolment paused successfully.';
@@ -781,7 +776,5 @@ class EnrolmentController extends Controller
             'status' => true,
             'message' => $message,
         ]);
-
     }
-
 }
