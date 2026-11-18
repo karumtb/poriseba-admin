@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\PatientServiceRequirement;
+use App\Models\Enrolment;
+use App\Models\PatientCaregiver;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PatientController extends Controller
 {
@@ -497,6 +501,7 @@ class PatientController extends Controller
     /**
      * Patient listing.
      */
+
     public function index(Request $request)
     {
         $perPage = (int) $request->input('per_page', 10);
@@ -522,13 +527,16 @@ class PatientController extends Controller
             ->with([
                 'currentServiceRequirement:id,patient_id,care_type,service_category,duty_hours',
                 'serviceRequirements:id,patient_id,care_type,service_category',
+
                 'caregiverAssignments:id,patient_id,caregiver_id,status',
-                'caregiverAssignments.caregiver:id,name',
+
+                // Enrolment table
+                'caregiverAssignments.caregiver:id,first_name,last_name',
             ]);
 
         // Search
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search = trim($request->input('search'));
 
             $query->where(function ($q) use ($search) {
                 $q->where('patient_name', 'like', "%{$search}%")
@@ -544,16 +552,42 @@ class PatientController extends Controller
         // Format response
         $patients->getCollection()->transform(function ($patient) {
 
+            // Format caregiver name
+            $patient->caregiverAssignments->each(function ($assignment) {
+
+                if ($assignment->caregiver) {
+
+                    $caregiver = $assignment->caregiver;
+
+                    $caregiver->setAttribute(
+                        'name',
+                        trim(
+                            ($caregiver->first_name ?? '') . ' ' .
+                                ($caregiver->last_name ?? '')
+                        )
+                    );
+                }
+            });
+
             return [
                 'id' => $patient->id,
+
                 'patient_code' => $patient->patient_code,
+
                 'patient_name' => $patient->patient_name,
+
                 'age' => $patient->age,
+
                 'gender' => $patient->gender,
+
                 'phone_number' => $patient->phone_number,
+
                 'alternate_number' => $patient->alternate_number,
+
                 'city' => $patient->city,
+
                 'state' => $patient->state,
+
                 'pin_code' => $patient->pin_code,
 
                 // Patient photo URL
@@ -562,6 +596,7 @@ class PatientController extends Controller
                     : null,
 
                 'status' => $patient->status,
+
                 'created_at' => $patient->created_at,
 
                 // Current service requirement
@@ -570,7 +605,7 @@ class PatientController extends Controller
                 // All service requirements
                 'service_requirements' => $patient->serviceRequirements,
 
-                // Caregiver assignments
+                // Caregiver assignments with concatenated caregiver name
                 'caregiver_assignments' => $patient->caregiverAssignments,
             ];
         });
@@ -655,5 +690,621 @@ class PatientController extends Controller
                 'files' => $files,
             ],
         ]);
+    }
+    /**
+     * Available Caregiver .
+     */
+
+
+
+
+    public function available_caregiver(Request $request)
+    {
+        $user = Auth::user();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validate Patient Code
+    |--------------------------------------------------------------------------
+    */
+
+
+        $validator = Validator::make($request->all(), [
+            'patient_code' => [
+                'required',
+                'string',
+                'exists:patients,patient_code',
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Find Patient & Current Service Requirement
+    |--------------------------------------------------------------------------
+    */
+
+        $patient = Patient::with('currentServiceRequirement')
+            ->where('patient_code', $request->patient_code)
+            ->first();
+
+        if (!$patient) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Patient not found',
+            ], 404);
+        }
+
+        $requirement = $patient->currentServiceRequirement;
+
+        /*
+    |--------------------------------------------------------------------------
+    | Caregiver Query
+    |--------------------------------------------------------------------------
+    */
+
+        $query = Enrolment::query()
+            ->with(['vendor', 'designation'])
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'caregiver_code',
+                'phone',
+                'status',
+                'profile_photo',
+                'designation',
+                'is_engaged',
+                'highest_qualification',
+                'address',
+                'area_id',
+                'gender',
+                'religion_id',
+                'language_id',
+                'vendor_id',
+            ])
+            ->selectRaw("CONCAT(first_name, ' ', last_name) as name");
+
+        // Only active caregivers
+        $query->where('status', 'A');
+        $query->where('is_engaged', 0);
+        /*
+    |--------------------------------------------------------------------------
+    | Vendor Restriction
+    |--------------------------------------------------------------------------
+    */
+
+        if ($user->role === 'vendor') {
+            $query->where('vendor_id', $user->id);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Patient Preference Matching
+    |--------------------------------------------------------------------------
+    */
+
+        if ($requirement) {
+
+            // 1. Preferred Service Area
+            if (!empty($requirement->service_location_area)) {
+                $query->where(
+                    'area_id',
+                    $requirement->service_location_area
+                );
+            }
+
+            // 2. Preferred Caregiver Gender
+            if (!empty($requirement->caregiver_gender)) {
+                $query->where(
+                    'gender',
+                    $requirement->caregiver_gender
+                );
+            }
+
+            // 3. Preferred Religion
+            if (!empty($requirement->preferred_religion)) {
+                $query->where(
+                    'religion_id',
+                    $requirement->preferred_religion
+                );
+            }
+
+            // 4. Preferred Language
+            if (!empty($requirement->preferred_language)) {
+                $query->where(
+                    'language_id',
+                    $requirement->preferred_language
+                );
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Pagination
+    |--------------------------------------------------------------------------
+    */
+
+        $perPage = $request->input('per_page', 10);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Search
+    |--------------------------------------------------------------------------
+    */
+
+        $search = trim($request->input('keyword', ''));
+        $status = trim($request->input('status', ''));
+
+        if (!empty($search)) {
+
+            $query->where(function ($q) use ($search) {
+
+                $q->whereRaw(
+                    "CONCAT(first_name, ' ', last_name) LIKE ?",
+                    ["%{$search}%"]
+                )
+                    ->orWhere('designation', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('placement_location', 'like', "%{$search}%")
+                    ->orWhere('caregiver_code', 'like', "%{$search}%");
+            });
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Additional Filters
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->filled('designation')) {
+            $query->where('designation', $request->designation);
+        }
+
+        if ($request->filled('area_id')) {
+            $query->where('area_id', $request->area_id);
+        }
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Get Caregivers
+    |--------------------------------------------------------------------------
+    */
+
+        $enrolments = $query
+            ->latest()
+            ->paginate($perPage);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Response
+    |--------------------------------------------------------------------------
+    */
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Available caregivers fetched successfully',
+            'patient_code' => $patient->patient_code,
+            'data' => $enrolments,
+        ]);
+    }
+
+    public function hireCaregiver(Request $request)
+    {
+        $validated = $request->validate([
+            'patient_code' => 'required|string|exists:patients,patient_code',
+            'caregiver_id' => 'required|integer|exists:enrolments,id',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $validator = Validator::make($request->all(), [
+            'patient_code' => [
+                'required',
+                'string',
+                'exists:patients,patient_code',
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+
+            $assignment = DB::transaction(function () use ($validated) {
+
+                // -----------------------------------------
+                // 1. Fetch Patient
+                // -----------------------------------------
+
+                $patient = Patient::where(
+                    'patient_code',
+                    $validated['patient_code']
+                )->lockForUpdate()->firstOrFail();
+
+
+                // -----------------------------------------
+                // 2. Fetch Caregiver from Enrolments
+                // -----------------------------------------
+
+                $caregiver = Enrolment::where(
+                    'id',
+                    $validated['caregiver_id']
+                )->lockForUpdate()->firstOrFail();
+
+
+                // -----------------------------------------
+                // 3. Check Caregiver Status
+                // -----------------------------------------
+
+                if ($caregiver->status !== 'A') {
+                    throw ValidationException::withMessages([
+                        'caregiver_id' => 'This caregiver is inactive.',
+                    ]);
+                }
+
+
+                // -----------------------------------------
+                // 4. Check Caregiver Availability
+                // -----------------------------------------
+
+                if ((int) $caregiver->is_engaged === 1) {
+                    throw ValidationException::withMessages([
+                        'caregiver_id' => 'This caregiver is already hired.',
+                    ]);
+                }
+
+
+                // -----------------------------------------
+                // 5. Get Patient Current Service Requirement
+                // -----------------------------------------
+
+                $requirementId = $patient->current_service_requirement_id;
+
+                if (!$requirementId) {
+                    throw ValidationException::withMessages([
+                        'service_requirement_id' =>
+                        'No service requirement found for this patient.',
+                    ]);
+                }
+
+                $requirement = PatientServiceRequirement::where('id', $requirementId)
+                    ->where('patient_id', $patient->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$requirement) {
+                    throw ValidationException::withMessages([
+                        'service_requirement_id' =>
+                        'Patient service requirement not found.',
+                    ]);
+                }
+
+
+                // -----------------------------------------
+                // 6. Calculate Start Date and End Date
+                // -----------------------------------------
+
+                if (!$requirement->care_start_date) {
+                    throw ValidationException::withMessages([
+                        'care_start_date' => 'Care start date is missing.',
+                    ]);
+                }
+
+                $startDate = Carbon::parse($requirement->care_start_date);
+
+                $endDate = null;
+
+                $duration = (int) $requirement->duration;
+
+                $durationUnit = strtolower(
+                    trim($requirement->duration_unit ?? '')
+                );
+
+                if ($duration > 0 && $durationUnit !== '') {
+
+                    $endDate = $startDate->copy();
+
+                    switch ($durationUnit) {
+
+                        case 'day':
+                        case 'days':
+                            $endDate->addDays($duration);
+                            break;
+
+                        case 'week':
+                        case 'weeks':
+                            $endDate->addWeeks($duration);
+                            break;
+
+                        case 'month':
+                        case 'months':
+                            $endDate->addMonthsNoOverflow($duration);
+                            break;
+
+                        case 'year':
+                        case 'years':
+                            $endDate->addYearsNoOverflow($duration);
+                            break;
+
+                        default:
+                            throw ValidationException::withMessages([
+                                'duration_unit' => 'Invalid service duration unit.',
+                            ]);
+                    }
+                }
+
+
+                // -----------------------------------------
+                // 7. Check Existing Active Assignment
+                // -----------------------------------------
+
+                $existingAssignment = PatientCaregiver::where(
+                    'patient_id',
+                    $patient->id
+                )
+                    ->where('caregiver_id', $caregiver->id)
+                    ->where('status', 'A')
+                    ->exists();
+
+                if ($existingAssignment) {
+                    throw ValidationException::withMessages([
+                        'caregiver_id' =>
+                        'This caregiver is already assigned to this patient.',
+                    ]);
+                }
+
+
+                // -----------------------------------------
+                // 8. Create Patient Caregiver Assignment
+                // -----------------------------------------
+
+                $assignment = PatientCaregiver::create([
+                    'patient_id' => $patient->id,
+
+                    'caregiver_id' => $caregiver->id,
+
+                    'service_requirement_id' => $requirement->id,
+
+                    'assigned_date' => now()->toDateString(),
+
+                    'start_date' => $startDate->toDateString(),
+
+                    'end_date' => $endDate
+                        ? $endDate->toDateString()
+                        : null,
+
+                    'status' => 'A',
+
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+
+
+                // -----------------------------------------
+                // 9. Update Caregiver Engagement Status
+                // -----------------------------------------
+
+                $caregiver->update([
+                    'is_engaged' => 1,
+                ]);
+
+
+                return $assignment;
+            });
+
+
+            // -----------------------------------------
+            // 10. Load Assignment Relationships
+            // -----------------------------------------
+
+            $assignment->load([
+                'patient',
+                'caregiver',
+                'serviceRequirement',
+            ]);
+
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Caregiver hired successfully.',
+                'data' => $assignment,
+            ], 200);
+        } catch (ValidationException $e) {
+
+            throw $e;
+        } catch (\Throwable $e) {
+
+            Log::error('Hire Caregiver Error', [
+                'error' => $e->getMessage(),
+                'patient_code' => $validated['patient_code'] ?? null,
+                'caregiver_id' => $validated['caregiver_id'] ?? null,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to hire caregiver. Please try again.',
+            ], 500);
+        }
+    }
+
+    public function assignmentHistory(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'patient_code' => 'required|string|exists:patients,patient_code',
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+
+        try {
+
+            // Find patient
+            $patient = Patient::where(
+                'patient_code',
+                $validated['patient_code']
+            )->first();
+
+            if (!$patient) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Patient not found.',
+                ], 404);
+            }
+
+            // Pagination
+            $perPage = $validated['per_page'] ?? 10;
+            $page = $validated['page'] ?? 1;
+
+            // Fetch assignment history
+            $assignments = PatientCaregiver::with([
+                'patient',
+                'caregiver.designation',
+                'serviceRequirement',
+            ])
+                ->where('patient_id', $patient->id)
+                ->orderByDesc('assigned_date')
+                ->orderByDesc('id')
+                ->paginate($perPage, ['*'], 'page', $page);
+
+            // Status mapping
+            $statusMap = [
+                'A' => 'Active',
+                'C' => 'Completed',
+                'R' => 'Reassigned',
+                'I' => 'Inactive',
+            ];
+
+            // Format assignment history
+            $history = $assignments->getCollection()->map(function ($item) use ($statusMap) {
+
+                $caregiver = $item->caregiver;
+                $requirement = $item->serviceRequirement;
+
+                // Assignment year
+                $assignmentDate = $item->assigned_date ?? $item->created_at;
+
+                $year = $assignmentDate
+                    ? $assignmentDate->format('Y')
+                    : date('Y');
+
+                // Generate assignment code
+                $assignmentCode = 'ASG-' . $year . '-' .
+                    str_pad($item->id, 3, '0', STR_PAD_LEFT);
+
+                // Caregiver name
+                $caregiverName = '-';
+
+                if ($caregiver) {
+                    $caregiverName = $caregiver->name
+                        ?? trim(
+                            ($caregiver->first_name ?? '') . ' ' .
+                                ($caregiver->last_name ?? '')
+                        );
+
+                    $caregiverName = $caregiverName ?: '-';
+                }
+
+                return [
+                    'id' => $item->id,
+
+                    'assignment_id' => $assignmentCode,
+
+                    'patient_id' => $item->patient_id,
+
+                    'patient_name' => $item->patient?->patient_name ?? '-',
+
+                    'patient_code' => $item->patient?->patient_code ?? '-',
+
+                    'caregiver_id' => $item->caregiver_id,
+
+                    'caregiver_name' => $caregiverName,
+
+                    'caregiver_code' => $caregiver?->caregiver_code ?? '-',
+
+                    'role' => $caregiver?->designation?->name ?? '-',
+
+                    'from' => $item->start_date
+                        ? $item->start_date->format('d M Y')
+                        : null,
+
+                    'to' => $item->end_date
+                        ? $item->end_date->format('d M Y')
+                        : null,
+
+                    'duty_hours' => $requirement?->duty_hours ?? '-',
+
+                    'fee' => $item->fee_per_hour
+                        ?? $requirement?->expected_fee_range
+                        ?? '-',
+
+                    'total_amount' => $item->total_amount ?? null,
+
+                    'status' => $statusMap[$item->status]
+                        ?? ucfirst((string) $item->status),
+
+                    'remarks' => $item->notes ?? '-',
+
+                    'assigned_date' => $item->assigned_date
+                        ? $item->assigned_date->format('d M Y')
+                        : null,
+                ];
+            });
+
+            $assignments->setCollection($history);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Assignment history fetched successfully.',
+
+                'data' => [
+                    'patient' => [
+                        'id' => $patient->id,
+                        'patient_code' => $patient->patient_code,
+                        'patient_name' => $patient->patient_name,
+                    ],
+
+                    'assignments' => $assignments,
+                ],
+
+            ], 200);
+        } catch (\Throwable $e) {
+
+            Log::error('Assignment History Error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'patient_code' => $validated['patient_code'] ?? null,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to fetch assignment history.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 }

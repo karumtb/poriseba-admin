@@ -24,6 +24,7 @@ class Enrolment extends Model
     protected $fillable = [
         'first_name',
         'last_name',
+        'caregiver_code',
         'address',
         'city',
         'state',
@@ -51,7 +52,8 @@ class Enrolment extends Model
         'hospital_id',
         'language_id',
         'area_id',
-        'religion_id'
+        'religion_id',
+        'is_engaged'
     ];
     public function vendor()
     {

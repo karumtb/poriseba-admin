@@ -34,19 +34,6 @@ export default function getNav(user) {
         },
       ],
     },
-    {
-      component: 'CNavItem',
-      name: 'Caregiver Assignment',
-      icon: cilHome,
-      items: [
-        {
-          component: 'CNavItem',
-          name: 'New Assignment',
-          to: '/caregiver/assignment',
-          icon: cilBank,
-        },
-      ],
-    },
 
     ...(user?.role === 'admin'
       ? [

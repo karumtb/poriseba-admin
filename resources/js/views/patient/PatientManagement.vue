@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, reactive, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
 import { PATIENT_DROPDOWNS } from '@/constants/patientDropdowns';
 import { indianStates } from '@/constants/indianStates';
 import { useFormBuilder } from '@/form/useFormBuilder';
@@ -60,6 +62,8 @@ const props = defineProps({
 | Later, replace these refs with API/service calls.
 |--------------------------------------------------------------------------
 */
+const route = useRoute();
+const router = useRouter();
 const patients = ref([]);
 const activeSidebar = ref('Patient Management');
 const activeSubmenu = ref('Patient Onboarding');
@@ -325,20 +329,46 @@ const {
   dietaryPreferences: { default: '', required: false },
 });
 
-const religions = [
-  { label: 'Any', value: 'Any' },
-  { label: 'Hinduism', value: 'Hinduism' },
-  { label: 'Islam', value: 'Islam' },
-  { label: 'Christianity', value: 'Christianity' },
-  { label: 'Others', value: 'Others' },
-];
+// Master dropdowns are loaded from the same /masters API used by Enrolment.
+// The API returns { data: { areas: [{id,name}], languages: [{id,name}], religions: [{id,name}] } }.
+const areas = ref([]);
+const languages = ref([]);
+const religions = ref([]);
 
-const languages = [
-  { label: 'Any', value: 'Any' },
-  { label: 'Bengali', value: 'Bengali' },
-  { label: 'Hindi', value: 'Hindi' },
-  { label: 'English', value: 'English' },
-];
+const mapMasterOptions = (items = []) =>
+  (Array.isArray(items) ? items : []).map((item) => ({
+    label: item.name,
+    value: item.id,
+  }));
+
+const getMasters = async () => {
+  try {
+    const response = await api.post('/masters');
+    const masterData = response?.data?.data || {};
+    areas.value = mapMasterOptions(masterData.areas);
+    languages.value = mapMasterOptions(masterData.languages);
+    religions.value = mapMasterOptions(masterData.religions);
+  } catch (error) {
+    console.error('Patient masters loading error:', error);
+    toast.error(error?.response?.data?.message || 'Unable to load area, language and religion options.');
+  }
+};
+
+const masterId = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value === 'object') return value.id ?? '';
+  return value;
+};
+
+// Resolve master IDs to readable names in the review/preview section.
+const masterName = (options, value) => {
+  if (value === null || value === undefined || value === '') return '-';
+
+  const id = typeof value === 'object' ? value.id : value;
+  const option = (options || []).find((item) => String(item.value) === String(id));
+
+  return option?.label || '-';
+};
 
 const {
   form: careForm,
@@ -820,16 +850,21 @@ const resetPatientForm = () => {
     if (input) input.value = '';
   });
 };
-const viewPatient = async (id) => {
+const openAvailableCaregivers = async (patient) => {
+  if (!patient?.patient_code) {
+    toast.error('Patient code not found.');
+    return;
+  }
+
   try {
-    const response = await api.post('/patients/view', { id });
-    const patientRecord = response?.data?.data?.patient;
-    if (!patientRecord) return toast.error('Patient details not found.');
-    // Keep the existing listing unchanged; show the fetched details in the form's review state.
-    await editPatient(id);
-    activeStep.value = 5;
+    await router.push({
+      name: 'CaregiverAssignment',
+      params: {
+        patient_code: patient.patient_code,
+      },
+    });
   } catch (error) {
-    toast.error(error?.response?.data?.message || 'Unable to fetch patient details.');
+    console.error('Caregiver navigation error:', error);
   }
 };
 
@@ -888,11 +923,11 @@ const editPatient = async (id) => {
         durationUnit: service.duration_unit || '',
         dutyHours: service.duty_hours || '',
         serviceLocation: service.service_location || '',
-        locationArea: service.service_location_area || '',
+        locationArea: masterId(service.service_location_area_id ?? service.service_location_area),
         locationCity: service.service_city || '',
         caregiverGender: service.caregiver_gender || '',
-        preferredLanguage: service.preferred_language || '',
-        preferredReligion: service.preferred_religion || '',
+        preferredLanguage: masterId(service.preferred_language_id ?? service.preferred_language),
+        preferredReligion: masterId(service.preferred_religion_id ?? service.preferred_religion),
         serviceDetails: service.service_details || '',
         feeRange: service.expected_fee_range || '',
         additionalFacilities: Array.isArray(service.additional_facilities) ? [...service.additional_facilities] : [],
@@ -1074,6 +1109,7 @@ const formatDate = (date) => {
 };
 onMounted(() => {
   breadcrumbs.value = ['Patient', 'Enrolment'];
+  getMasters();
   getPatients();
 });
 </script>
@@ -1605,8 +1641,8 @@ onMounted(() => {
                       </div>
                       <div class="col-lg-3 col-md-6">
                         <div class="field-group">
-                          <label class="pb-label">Location / Area</label>
-                          <CFormInput v-model="careForm.locationArea" />
+                          <label class="pb-label">Area</label>
+                          <CFormSelect v-model="careForm.locationArea" :options="[{ label: 'Select area', value: '' }, ...areas]" />
                         </div>
                       </div>
                       <div class="col-lg-3 col-md-6">
@@ -2067,7 +2103,7 @@ onMounted(() => {
                           <span>Service Location</span><strong>{{ careForm.serviceLocation || '-' }}</strong>
                         </div>
                         <div class="review-value-row">
-                          <span>Location Area</span><strong>{{ careForm.locationArea || '-' }}</strong>
+                          <span>Location Area</span><strong>{{ masterName(areas, careForm.locationArea) }}</strong>
                         </div>
                         <div class="review-value-row">
                           <span>City</span><strong>{{ careForm.locationCity || '-' }}</strong>
@@ -2076,10 +2112,10 @@ onMounted(() => {
                           <span>Caregiver Gender</span><strong>{{ careForm.caregiverGender || '-' }}</strong>
                         </div>
                         <div class="review-value-row">
-                          <span>Preferred Language</span><strong>{{ careForm.preferredLanguage || '-' }}</strong>
+                          <span>Preferred Language</span><strong>{{ masterName(languages, careForm.preferredLanguage) }}</strong>
                         </div>
                         <div class="review-value-row">
-                          <span>Preferred Religion</span><strong>{{ careForm.preferredReligion || '-' }}</strong>
+                          <span>Preferred Religion</span><strong>{{ masterName(religions, careForm.preferredReligion) }}</strong>
                         </div>
                         <div class="review-value-row">
                           <span>Expected Fee Range</span><strong>{{ careForm.feeRange || '-' }}</strong>
@@ -2305,8 +2341,8 @@ onMounted(() => {
                         size="sm"
                         class="me-2 mb-1"
                         title="View Patient"
-                        @click="viewPatient(data.id)">
-                        <CIcon :icon="cilLowVision" />
+                        @click="openAvailableCaregivers(data)">
+                        <CIcon :icon="cilUser" />
                       </CButton>
 
                       <CButton

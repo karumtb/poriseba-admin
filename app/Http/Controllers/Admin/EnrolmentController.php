@@ -418,7 +418,17 @@ class EnrolmentController extends Controller
         */
 
         $enrolment->save();
+        if (!$isEdit) {
 
+            $enrolment->caregiver_code = 'CG-' . str_pad(
+                $enrolment->id,
+                5,
+                '0',
+                STR_PAD_LEFT
+            );
+
+            $enrolment->saveQuietly();
+        }
 
         /*
         |--------------------------------------------------------------------------

@@ -31,28 +31,34 @@ class PatientCaregiver extends Model
      */
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(
+            Patient::class,
+            'patient_id',
+            'id'
+        );
     }
 
     /**
-     * Caregiver is stored in enrolments table.
+     * Caregiver belongs to enrolments table.
      */
     public function caregiver(): BelongsTo
     {
         return $this->belongsTo(
             Enrolment::class,
-            'caregiver_id'
+            'caregiver_id',
+            'id'
         );
     }
 
     /**
-     * Assignment belongs to a service requirement.
+     * Assignment belongs to service requirement.
      */
     public function serviceRequirement(): BelongsTo
     {
         return $this->belongsTo(
             PatientServiceRequirement::class,
-            'service_requirement_id'
+            'service_requirement_id',
+            'id'
         );
     }
 }

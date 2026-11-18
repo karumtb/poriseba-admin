@@ -71,8 +71,8 @@ const routes = [
         component: () => import('@/views/patient/PatientManagement.vue'),
       },
       {
-        path: 'caregiver/assignment',
-        name: 'Caregiver Assignment',
+        path: '/patient/:patient_code/available-caregiver',
+        name: 'CaregiverAssignment',
         component: () => import('@/views/caregiver/CaregiverAssignment.vue'),
       },
     ],
