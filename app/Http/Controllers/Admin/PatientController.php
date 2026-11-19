@@ -805,7 +805,7 @@ class PatientController extends Controller
             if (!empty($requirement->caregiver_gender)) {
                 $query->where(
                     'gender',
-                    $requirement->caregiver_gender
+                    $requirement->caregiver_gender == 'Female' ? 'F' : 'M'
                 );
             }
 
