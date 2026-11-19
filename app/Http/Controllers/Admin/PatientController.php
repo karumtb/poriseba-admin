@@ -591,9 +591,7 @@ class PatientController extends Controller
                 'pin_code' => $patient->pin_code,
 
                 // Patient photo URL
-                'photo_url' => $patient->photo
-                    ? asset($patient->photo)
-                    : null,
+                'photo_url' => $patient->photoPreviewUrl,
 
                 'status' => $patient->status,
 

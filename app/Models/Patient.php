@@ -6,10 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Patient extends Model
 {
     protected $table = 'patients';
+    protected $appends = [
+        'photoPreviewUrl',
+
+    ];
+    public static $snakeAttributes = false;
 
     protected $fillable = [
         // Basic Information
@@ -120,5 +126,21 @@ class Patient extends Model
                 'notes',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Get the full URL for the enrolment profile preview.
+     */
+    protected function photoPreviewUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function (mixed $value, array $attributes) {
+                $path = !empty($attributes['photo'])
+                    ? ltrim($attributes['photo'], '/')
+                    : 'no-image.png';
+
+                return rtrim(env('PUBLIC_URL'), '/') . '/' . $path;
+            },
+        );
     }
 }
