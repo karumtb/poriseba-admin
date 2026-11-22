@@ -87,11 +87,8 @@ onMounted(() => {
             <img :src="logo" alt="" />
           </div>
           <CForm @submit.prevent="login" novalidate>
-            <h2 class="und">Admin Login</h2>
-
-            <p>Sign in to access your admin dashboard and manage Poriseba Services.</p>
-
-            <hr />
+            <h2 class="und">Login</h2> 
+            <hr>
 
             <div class="mb-3 text-start">
               <label for="exampleFormControlInput1" class="form-label text-left">Email Address</label>
@@ -127,16 +124,21 @@ onMounted(() => {
               </div>
               <CFormFeedback invalid v-if="submitted && !form.password">Password is required. </CFormFeedback>
             </div>
-            <div class="mb-3 form-check text-start">
-              <input type="checkbox" class="form-check-input" id="exampleCheck1" />
-              <label class="form-check-label" for="exampleCheck1">Remember Me</label>
+            <div class="d-flex justify-content-between"> 
+                <div class="mb-3 form-check text-start"> 
+                  <input type="checkbox" class="form-check-input" id="exampleCheck1" />
+                  <label class="form-check-label" for="exampleCheck1">Remember Me</label>
+                </div>
+                <div class="mb-3 form-check text-start forgotpass">
+                  <a href="#0">Forgot Password?</a>
+                </div>
             </div>
             <div class="col-auto">
               <button type="submit" color="primary" class="btn btn-color form-control" :disabled="btnLoading">
                 <CIcon :icon="cilLockLocked" />
                 <CSpinner v-if="btnLoading" size="sm" class="me-2" />
 
-                {{ btnLoading ? 'Signing in...' : 'Sign In' }}
+                {{ btnLoading ? 'Logging...' : 'Login' }}
               </button>
             </div>
           </CForm>
