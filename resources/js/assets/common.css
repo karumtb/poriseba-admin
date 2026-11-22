@@ -622,6 +622,13 @@ div.border-bottom {
 .heightvh {
   min-height: 100vh;
 }
+.loginpage{
+  background-color: #fdfdfd;
+}
+.form-check-label, .form-label{
+  font-weight: 600;
+  color: #000;
+}
 .loginmain {
   width: 100%;
   max-width: 370px;
@@ -629,10 +636,85 @@ div.border-bottom {
 .loginlogo {
   margin-bottom: 15px;
 }
+.form-check-input[type=checkbox]{
+  outline: none !important;
+  box-shadow: none !important;
+  accent-color: var(--pm-primary);
+}
+.loginmain .btn{
+  border-radius: 4px !important;
+}
+.loginmain .btn:hover{
+  background-color: #c6166c !important;
+}
+.input-group-text {
+    /* position: absolute; */
+    height: 48px;
+    /* width: 48px; */
+    background: transparent !important;
+    border: 0;
+    padding: 12px 12px;
+    z-index: 1;
+
+
+    position: relative;
+    border: 1px solid #b0b0b0 !important;
+    border-right: 0 !important;
+}
+.input-group-text img {
+    height: 20px;
+    filter: invert(49%) sepia(41%) saturate(2874%) hue-rotate(302deg) brightness(101%) contrast(99%);
+}
+.loginpage .form-control::selection {
+    background: transparent;
+    color: inherit;
+}
+.form-control {
+    height: 48px;
+    border: 1px solid #b0b0b0 !important;
+    padding: 10px 15px;
+    background-color: transparent !important;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    box-shadow: none !important;
+    border-radius: 5px !important;
+    color: #333 !important;
+
+    padding-left: 5px;
+    border-radius: 0 5px 5px 0 !important;
+    font-size: 14px;
+    border-left: 0 !important;
+}
+.loginpage .form-control::placeholder{
+  color: #333 !important;
+  opacity: 1;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+.form-password .form-password-action:focus{
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
 .loginmain h2 {
-  color: #db0a5f !important;
+  margin-top: 28px;
+  margin-bottom: 13px;
+  padding-bottom: 15px;
   font-size: 37px;
-  margin-bottom: 10px;
+  position: relative;
+  color: #333!important;
+  font-weight: 700;
+}
+.loginmain h2::after {
+  position: absolute;
+  content: "";
+  width: 50px;
+  height: 2px;
+  background-color: #db0a5f;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
 }
 .rightimg {
   overflow: hidden;

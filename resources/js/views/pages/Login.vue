@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/services/adminAxios';
 import logo from '@/assets/images/logo.png';
 import imgg2 from '@/assets/images/imgg2.png';
+import usericon from '@/assets/images/name.png';
+import lockicon from '@/assets/images/lock.png';
 import { cilLockLocked, cilEnvelopeClosed } from '@coreui/icons';
 const router = useRouter();
 const authStore = useAuthStore();
@@ -85,7 +87,7 @@ onMounted(() => {
             <img :src="logo" alt="" />
           </div>
           <CForm @submit.prevent="login" novalidate>
-            <h2>Admin Login</h2>
+            <h2 class="und">Admin Login</h2>
 
             <p>Sign in to access your admin dashboard and manage Poriseba Services.</p>
 
@@ -93,15 +95,16 @@ onMounted(() => {
 
             <div class="mb-3 text-start">
               <label for="exampleFormControlInput1" class="form-label text-left">Email Address</label>
-              <CFormInput
-                v-model.trim.trim="form.email"
-                type="email"
-                placeholder="Email address"
-                class="form-control"
+              <div class="input-group">
+              <span class="input-group-text">
+                <img :src="usericon" alt="" />
+              </span>
+                <CFormInput
+                v-model.trim.trim="form.email" type="email" placeholder="Email address" class="form-control"
                 :class="{
                   'is-invalid': submitted && (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)),
-                }"
-                required />
+                }" required />
+              </div>
               <CFormFeedback invalid v-if="submitted && !form.email"> Please enter an email address. </CFormFeedback>
 
               <CFormFeedback invalid v-else-if="submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)">
@@ -110,13 +113,18 @@ onMounted(() => {
             </div>
             <div class="mb-3 text-start passmain">
               <label for="exampleFormControlInput1" class="form-label text-left">Password</label>
-              <CPasswordInput
-                v-model.trim="form.password"
-                placeholder="Password"
-                autocomplete="current-password"
-                class="form-control"
-                :class="{ 'is-invalid': submitted && !form.password }"
-                required />
+              <div class="input-group">
+                  <span class="input-group-text">
+                    <img :src="lockicon" alt="" />
+                  </span>
+                  <CPasswordInput
+                    v-model.trim="form.password"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                    class="form-control"
+                    :class="{ 'is-invalid': submitted && !form.password }"
+                    required />
+              </div>
               <CFormFeedback invalid v-if="submitted && !form.password">Password is required. </CFormFeedback>
             </div>
             <div class="mb-3 form-check text-start">
