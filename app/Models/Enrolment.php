@@ -53,7 +53,31 @@ class Enrolment extends Model
         'language_id',
         'area_id',
         'religion_id',
-        'is_engaged'
+        'is_engaged',
+        'middle_name',
+        'date_of_birth',
+        'alternate_phone',
+        'district',
+
+        'emergency_contact_name',
+        'emergency_contact_number',
+        'emergency_contact_relationship',
+
+        'professional_summary',
+        'primary_role',
+
+        'career_status',
+        'availability_status',
+        'placement_status',
+
+        'preferred_duty_types',
+        'preferred_locations',
+
+        'verification_status',
+        'verified_at',
+        'verification_remark',
+
+        'profile_type',
     ];
     public function vendor()
     {
