@@ -1098,23 +1098,25 @@ const toogleStatus = async (id = null) => {
 };
 </script>
 <template>
-  <CRow>
+  <CRow class="patient-management-page">
     <!-- ====================================================== -->
     <!-- LISTING -->
     <!-- ====================================================== -->
 
     <CCol :lg="12" :md="12" :sm="12">
-      <CCard class="mb-4">
-        <CCardHeader>
-          <div class="d-flex justify-content-between align-items-center">
-            <strong> Enrolment Lists </strong>
-
+      <CCard class="mb-4 onboarding-panel">
+        <CCardHeader class="pb-card-header"> 
+            <div class="pb-card-header-left">
+              <div class="pb-card-icon">
+                <CIcon :icon="cilPencil" />
+              </div>
+              <div class="pb-card-title"> Enrolment Lists </div>
+            </div>
             <CButton color="primary" @click="addNew" v-if="authStore.user?.role != 'hospital'">
               <CIcon :icon="cilPlus" class="me-1" />
 
               Add New
-            </CButton>
-          </div>
+            </CButton> 
         </CCardHeader>
 
         <CCardBody>
@@ -1122,7 +1124,7 @@ const toogleStatus = async (id = null) => {
             <CCardBody class="py-4">
               <div class="row g-3 align-items-end">
                 <!-- Acknowledgement -->
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-4 col-md-6">
                   <input type="text" class="form-control" v-model.trim="filters.keyword" placeholder="Filter By Name,Phone No" size="lg" />
                 </div>
 
@@ -1164,7 +1166,7 @@ const toogleStatus = async (id = null) => {
               </div>
             </CCardBody>
           </CCard>
-          <div class="card">
+          <div class="card onboarding-panel">
             <div class="bulk-approve-bar mb-3" v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'">
               <div class="selected-info">
                 <span class="selected-count">
@@ -1291,19 +1293,19 @@ const toogleStatus = async (id = null) => {
     <!-- ====================================================== -->
 
     <CCol :lg="12" :md="12" :sm="12" ref="formSection" v-if="authStore.user.role != 'hospital'">
-      <CCard class="mb-4">
-        <CCardHeader>
-          <div class="d-flex justify-content-between align-items-center">
-            <strong>
-              {{ editMode ? 'Edit Enrolment' : 'Add Enrolment' }}
-            </strong>
+      <CCard class="mb-4 onboarding-panel">
+        <CCardHeader class="pb-card-header"> 
+            <div class="pb-card-header-left">
+                <div class="pb-card-icon">
+                  <CIcon :icon="cilPlus" />
+                </div>
+                <div class="pb-card-title"> {{ editMode ? 'Edit Enrolment' : 'Add Enrolment' }}</div>
+            </div> 
 
-            <CButton v-if="editMode" color="secondary" variant="outline" size="sm" @click="addNew">
-              <CIcon :icon="cilX" class="me-1" />
-
+            <CButton v-if="editMode" color="primary" variant="outline" size="sm" @click="addNew">
+              <CIcon :icon="cilX" class="me-1" /> 
               New
-            </CButton>
-          </div>
+            </CButton> 
         </CCardHeader>
 
         <CCardBody>
@@ -1336,11 +1338,11 @@ const toogleStatus = async (id = null) => {
 
               <div class="enrolment-step-panel">
                 <!-- STEP 1: BASIC INFORMATION -->
-                <section v-if="activeStep === 1" class="enrolment-step-section">
-                  <h5 class="enrolment-section-heading">Basic Information</h5>
+                <section v-if="activeStep === 1" class="enrolment-step-section review-content-wrapper">
+                  <h5 class="enrolment-section-heading pb-section-title review-section-title">Basic Information</h5>
                   <p class="enrolment-section-description">Enter caregiver personal details and contact information.</p>
                   <CRow>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
                       <!-- First Name -->
                       <CFormLabel>First Name <span class="required-mark">*</span></CFormLabel>
                       <input
@@ -1353,7 +1355,11 @@ const toogleStatus = async (id = null) => {
                         @input="validateField('first_name')" />
                       <CFormFeedback invalid> {{ errors?.first_name?.message }}. </CFormFeedback>
                     </CCol>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
+                      <CFormLabel>Middle Name</CFormLabel>
+                      <input v-model.trim="form.middle_name" class="form-control" />
+                    </CCol>
+                    <CCol md="4" class="mb-3">
                       <!-- Last Name -->
                       <CFormLabel>Last Name <span class="required-mark">*</span></CFormLabel>
                       <input
@@ -1366,7 +1372,7 @@ const toogleStatus = async (id = null) => {
                         @input="validateField('last_name')" />
                       <CFormFeedback invalid> {{ errors?.last_name?.message }}. </CFormFeedback>
                     </CCol>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
                       <!-- Last Name -->
                       <CFormLabel>Gender <span class="required-mark">*</span></CFormLabel>
                       <CFormSelect
@@ -1384,7 +1390,7 @@ const toogleStatus = async (id = null) => {
                       </CFormSelect>
                       <CFormFeedback invalid> {{ errors?.gender?.message }}. </CFormFeedback>
                     </CCol>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
                       <!-- Email -->
                       <CFormLabel>Email <span class="required-mark">*</span></CFormLabel>
                       <input
@@ -1397,6 +1403,11 @@ const toogleStatus = async (id = null) => {
                         @input="validateField('email')" />
                       <CFormFeedback invalid> {{ errors?.email?.message }}. </CFormFeedback>
                     </CCol>
+                    <CCol md="4" class="mb-3">
+                      <CFormLabel>Date of Birth</CFormLabel>
+                      <CDatePicker v-model:date="form.date_of_birth" format="dd/MM/yyyy" />
+                    </CCol>
+
                     <CCol md="6" class="mb-3">
                       <!-- Phone -->
                       <CFormLabel>Phone No <span class="required-mark">*</span></CFormLabel>
@@ -1416,29 +1427,21 @@ const toogleStatus = async (id = null) => {
                       <CFormFeedback invalid>
                         {{ errors?.phone?.message }}
                       </CFormFeedback>
-                    </CCol>
-
-                    <CCol md="6" class="mb-3">
-                      <CFormLabel>Middle Name</CFormLabel>
-                      <input v-model.trim="form.middle_name" class="form-control" />
-                    </CCol>
-                    <CCol md="6" class="mb-3">
-                      <CFormLabel>Date of Birth</CFormLabel>
-                      <CDatePicker v-model:date="form.date_of_birth" format="dd/MM/yyyy" />
-                    </CCol>
+                    </CCol> 
                     <CCol md="6" class="mb-3">
                       <CFormLabel>Alternate Phone</CFormLabel>
                       <input v-model.trim="form.alternate_phone" class="form-control" maxlength="10" />
                     </CCol>
-                    <CCol md="6" class="mb-3">
+
+                    <CCol md="4" class="mb-3">
                       <CFormLabel>Emergency Contact Name</CFormLabel>
                       <input v-model.trim="form.emergency_contact_name" class="form-control" />
                     </CCol>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
                       <CFormLabel>Emergency Contact Number</CFormLabel>
                       <input v-model.trim="form.emergency_contact_number" class="form-control" maxlength="10" />
                     </CCol>
-                    <CCol md="6" class="mb-3">
+                    <CCol md="4" class="mb-3">
                       <CFormLabel>Emergency Contact Relationship</CFormLabel>
                       <input v-model.trim="form.emergency_contact_relationship" class="form-control" />
                     </CCol>
@@ -2067,91 +2070,101 @@ const toogleStatus = async (id = null) => {
                 <section v-if="activeStep === 6" class="enrolment-step-section">
                   <h5 class="enrolment-section-heading">Confirmation</h5>
                   <p class="enrolment-section-description">Review the details before saving the enrolment.</p>
-                  <div class="enrolment-review-grid">
-                    <div class="enrolment-review-card">
-                      <h6>Personal Information</h6>
-                      <div>
-                        <span>Name</span
-                        ><strong>{{ [form.first_name, form.middle_name, form.last_name].filter(Boolean).join(' ') || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Gender</span><strong>{{ form.gender || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Date of Birth</span><strong>{{ form.date_of_birth || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Email</span><strong>{{ form.email || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Phone</span><strong>{{ form.phone || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Alternate Phone</span><strong>{{ form.alternate_phone || '-' }}</strong>
-                      </div>
-                    </div>
-                    <div class="enrolment-review-card">
-                      <h6>Address</h6>
-                      <div>
-                        <span>Address</span><strong>{{ form.address || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>City</span><strong>{{ form.city || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>District</span><strong>{{ form.district || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>State</span><strong>{{ form.state || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>PIN Code</span><strong>{{ form.pin_code || '-' }}</strong>
+                  <div class="review-summary-grid enrolment-review-grid">
+                    <div class="review-summary-card enrolment-review-card">
+                      <div class="review-summary-card-header review-header-blue">Personal Information</div>
+                      <div class="review-summary-card-body">
+                          <div class="review-value-row">
+                            <span>Name</span
+                            ><strong>{{ [form.first_name, form.middle_name, form.last_name].filter(Boolean).join(' ') || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Gender</span><strong>{{ form.gender || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Date of Birth</span><strong>{{ form.date_of_birth || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Email</span><strong>{{ form.email || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Phone</span><strong>{{ form.phone || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Alternate Phone</span><strong>{{ form.alternate_phone || '-' }}</strong>
+                          </div>
                       </div>
                     </div>
-                    <div class="enrolment-review-card">
-                      <h6>Professional Information</h6>
-                      <div>
-                        <span>Qualification</span><strong>{{ form.highest_qualification || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Designation</span
-                        ><strong>{{ designations.find((item) => item.id === form.designation)?.name || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Experience</span><strong>{{ form.experience || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Specialization</span><strong>{{ form.specialization || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Profile Type</span><strong>{{ form.profile_type || '-' }}</strong>
-                      </div>
-                    </div>
-                    <div class="enrolment-review-card">
-                      <h6>Documents</h6>
-                      <div>
-                        <span>Profile Photo</span><strong>{{ profilePreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                      </div>
-                      <div>
-                        <span>Aadhaar PDF</span><strong>{{ aadhaarPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
-                      </div>
-                      <div>
-                        <span>Certificate PDF</span><strong>{{ certificatePreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                    <div class="enrolment-review-card review-summary-card">
+                      <div class="review-summary-card-header review-header-red">Address</div>
+                      <div class="review-summary-card-body">
+                          <div class="review-value-row">
+                            <span>Address</span><strong>{{ form.address || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>City</span><strong>{{ form.city || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>District</span><strong>{{ form.district || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>State</span><strong>{{ form.state || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>PIN Code</span><strong>{{ form.pin_code || '-' }}</strong>
+                          </div>
                       </div>
                     </div>
-                    <div class="enrolment-review-card">
-                      <h6>Placement</h6>
-                      <div>
-                        <span>Location</span><strong>{{ form.placement_location || '-' }}</strong>
+                    <div class="enrolment-review-card review-summary-card">
+                      <div class="review-summary-card-header review-header-green">Professional Information</div>
+                      <div class="review-summary-card-body">
+                          <div class="review-value-row">
+                            <span>Qualification</span><strong>{{ form.highest_qualification || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Designation</span
+                            ><strong>{{ designations.find((item) => item.id === form.designation)?.name || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Experience</span><strong>{{ form.experience || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Specialization</span><strong>{{ form.specialization || '-' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Profile Type</span><strong>{{ form.profile_type || '-' }}</strong>
+                          </div>
                       </div>
-                      <div>
-                        <span>Start Date</span><strong>{{ form.placement_start || '-' }}</strong>
+                    </div>
+                    <div class="enrolment-review-card review-summary-card">
+                      <div class="review-summary-card-header review-header-red">Documents</div>
+                      <div class="review-summary-card-body">
+                          <div class="review-value-row">
+                            <span>Profile Photo</span><strong>{{ profilePreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Aadhaar PDF</span><strong>{{ aadhaarPreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                          </div>
+                          <div class="review-value-row">
+                            <span>Certificate PDF</span><strong>{{ certificatePreviewUrl ? 'Uploaded' : 'Not uploaded' }}</strong>
+                          </div>
                       </div>
-                      <div>
-                        <span>End Date</span><strong>{{ form.placement_end || '-' }}</strong>
-                      </div>
-                      <div>
-                        <span>Status</span><strong>{{ form.placement_status || '-' }}</strong>
+                    </div>
+                    <div class="enrolment-review-card review-summary-card">
+                      <div class="review-summary-card-header review-header-blue">Placement</div>
+                      <div class="review-summary-card-body">
+                            <div class="review-value-row">
+                              <span>Location</span><strong>{{ form.placement_location || '-' }}</strong>
+                            </div>
+                            <div class="review-value-row">
+                              <span>Start Date</span><strong>{{ form.placement_start || '-' }}</strong>
+                            </div>
+                            <div class="review-value-row">
+                              <span>End Date</span><strong>{{ form.placement_end || '-' }}</strong>
+                            </div>
+                            <div class="review-value-row">
+                              <span>Status</span><strong>{{ form.placement_status || '-' }}</strong>
+                            </div>
                       </div>
                     </div>
                   </div>
@@ -2160,12 +2173,12 @@ const toogleStatus = async (id = null) => {
             </div>
             <!-- /form-scroll-body -->
 
-            <div class="form-sticky-actions enrolment-wizard-actions">
+            <div class="form-sticky-actions enrolment-wizard-actions mt-3">
               <div class="d-flex gap-2 justify-content-between align-items-center w-100">
                 <div>
                   <CButton
                     type="button"
-                    color="secondary"
+                    color="light"
                     variant="outline"
                     :disabled="activeStep === 1 || btnLoading"
                     @click="previousStep">
@@ -2215,165 +2228,4 @@ const toogleStatus = async (id = null) => {
   </CModal>
 </template>
 
-<style scoped>
-.required-mark {
-  display: inline-block;
-  margin-left: 2px;
-  color: #dc3545;
-  font-weight: 700;
-}
-.upload-required {
-  margin-top: 7px;
-  color: #dc3545;
-  font-size: 12px;
-}
-.enrolment-wizard-form {
-  display: block;
-  width: 100%;
-}
-.form-scroll-body {
-  width: 100%;
-}
-.stepper {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  overflow-x: auto;
-  padding: 8px 4px 18px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid #e7edf4;
-  gap: 0;
-}
-.stepper-item {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex: 1 0 145px;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  text-align: center;
-  cursor: pointer;
-}
-.stepper-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 17px;
-  left: calc(50% + 19px);
-  width: calc(100% - 38px);
-  height: 2px;
-  background: #dce3ec;
-  z-index: -1;
-}
-.stepper-item.completed:not(:last-child)::after {
-  background: #198754;
-}
-.step-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 35px;
-  height: 35px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: #e7ecf2;
-  color: #697586;
-  font-size: 13px;
-  font-weight: 700;
-}
-.stepper-item.current .step-number {
-  background: #e50065;
-  color: #fff;
-  box-shadow: 0 0 0 4px #fde5ef;
-}
-.stepper-item.completed .step-number {
-  background: #198754;
-  color: #fff;
-}
-.step-label {
-  max-width: 150px;
-  color: #667085;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-.stepper-item.current .step-label {
-  color: #e50065;
-}
-.stepper-item.completed .step-label {
-  color: #198754;
-}
-.enrolment-step-panel {
-  min-height: 300px;
-  padding: 8px 4px 18px;
-}
-.enrolment-section-heading {
-  margin: 0 0 5px;
-  color: #24344d;
-  font-size: 17px;
-  font-weight: 700;
-}
-.enrolment-section-description {
-  margin: 0 0 20px;
-  color: #7b8798;
-  font-size: 12px;
-}
-.enrolment-wizard-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-  padding: 14px 0 4px;
-  margin-top: 12px;
-  background: #fff;
-  border-top: 1px solid #e7edf4;
-}
-.enrolment-review-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-.enrolment-review-card {
-  min-width: 0;
-  padding: 14px;
-  border: 1px solid #dce5f1;
-  border-radius: 8px;
-  background: #fff;
-}
-.enrolment-review-card h6 {
-  margin: 0 0 10px;
-  color: #24344d;
-  font-weight: 700;
-}
-.enrolment-review-card > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 0;
-  border-bottom: 1px solid #edf0f5;
-  font-size: 12px;
-}
-.enrolment-review-card > div:last-child {
-  border-bottom: 0;
-}
-.enrolment-review-card span {
-  color: #718096;
-}
-.enrolment-review-card strong {
-  color: #263449;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-@media (max-width: 767px) {
-  .stepper {
-    justify-content: flex-start;
-  }
-  .stepper-item {
-    flex-basis: 125px;
-  }
-  .enrolment-review-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+

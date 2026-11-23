@@ -51,9 +51,13 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
-
-.document-label span {
+.document-label > span{
   display: block;
+}
+.required-mark{
+  color: #ff0000;
+}
+.document-label span {
 
   margin-top: 3px;
 
@@ -482,12 +486,14 @@ body {
 /* Profile image styling */
 /* Profile image styling */
 .profile-img {
-  width: 80px; /* Increased from 40px to 120px */
-  height: 80px; /* Increased from 40px to 120px */
-  border-radius: 50%; /* Keeps the image perfectly round */
-  object-fit: cover; /* Prevents distortion and stretching */
-  border: 2px solid #ccc; /* Optional border */
-  display: block; /* Removes extra inline whitespace */
+  -o-object-fit: cover;
+  object-fit: cover;
+  border: 2px solid #ebebeb;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: block;
+  object-position: top center;
 }
 .filter-card {
   border-top: 3px solid var(--cui-primary) !important;
@@ -1408,7 +1414,7 @@ div.border-bottom {
 .field-group {
   min-width: 0;
 }
-.field-group label {
+.form-label, .field-group label {
   color: #101549;
   margin: 0 0 5px;
   font-size: 12px;
@@ -1418,17 +1424,29 @@ div.border-bottom {
 .field-group label span {
   color: var(--pm-primary);
 }
+.date-picker-input-wrapper{
+  line-height: 1.9;
+}
 .date-picker .date-picker-input-group{
     height: 38px !important;
-    padding: 9px 12px;
+    padding: 5px 12px;
+}
+.date-picker-input:focus{
+  color: #000 !important;
+}
+.date-picker-input[value=""]{
+    color: #bbc3cd !important;
+
 }
 .date-picker-input{
     font-size: 13px !important;
-    color: #bbc3cd !important;
+    /* color: #bbc3cd !important; */
+    color: #000 !important;
 }
 .form-select:has(option:checked[value=""]) {
   color: #bbc3cd !important;
 }
+.patient-management-page .p-inputtext,
 .patient-management-page .form-control,
 .patient-management-page .form-select {
   width: 100%;
@@ -1445,6 +1463,9 @@ div.border-bottom {
 .patient-management-page textarea.form-control {
   min-height: 100px;
   resize: none;
+}
+.ck.ck-editor__main>.ck-editor__editable {
+    font-size: 14px;
 }
 .input-with-icon {
   position: relative;
@@ -1678,12 +1699,13 @@ div.border-bottom {
   min-width: 74px;
   padding: 6px 10px;
 }
+.btn.btn-outline-light,
 .btn.btn-outline-light.back-button {
-  color: var(--pm-primary) !important;
+color: #db2777 !important;
   border-color: #f3a1c0 !important;
 }
 .draft-button {
-  color: var(--pm-primary) !important;
+color: #db2777 !important;
   border-color: #f3a1c0 !important;
 }
 .continue-button {
@@ -2061,7 +2083,7 @@ div.border-bottom {
   color: #475569;
   margin: 2px 0 0 0;
 }
-.pb-section-title {
+.enrolment-section-heading, .pb-section-title {
     color: #101549 !important;
     letter-spacing: -.25px;
     background-color: #0000;
@@ -2512,7 +2534,10 @@ div.border-bottom {
 .patient-management-page .content-card .card-heading {
   font-size: 13px;
 } */
-
+select.form-control{
+  color: #252b36f2;
+  font-size: 14px;
+}
 .form-control, .form-select,
 .patient-management-page .form-control,
 .patient-management-page .form-select {
@@ -2551,7 +2576,7 @@ div.border-bottom {
 .patient-management-page .status-tag {
   font-size: 11px;
 } */
-
+.body-part .btn,
 .patient-management-page .btn {
   font-size: 13px;
   min-height: 38px;
@@ -2561,6 +2586,7 @@ div.border-bottom {
   justify-content: center;
   gap: 5px;
 }
+.body-part .btn.btn-success{color: #fff;}
 .breadcrumb-item {
   font-size: 14px;
   font-weight: 600;
@@ -3336,7 +3362,7 @@ table.p-datatable-table tbody td .btn{
   width: 26px;
   height: 26px;
   min-height: auto;
-  padding: 5px;
+  padding: 0;
 }
 table.p-datatable-table .p-datatable-column-title{font-weight: inherit !important;}
 .p-paginator-page, .p-paginator-next, .p-paginator-last, .p-paginator-first, .p-paginator-prev{
@@ -3350,11 +3376,124 @@ table.p-datatable-table .p-datatable-column-title{font-weight: inherit !importan
   width: 0.6rem;
   height: 0.6rem;
 }
+.p-select{
+  height: 38px;
+  align-items: center;
+}
 .p-select-label{
   flex: auto !important;
   height: 26px;
   padding: 2px 0 2px 10px !important;
   font-size: 14px !important;
+}
+.patient-photo {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-summary-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.patient-summary-details {
+  min-width: 0;
+}
+
+/* Review tab: use explicit layout so the summary remains visible in both create and edit modes. */
+.review-content-wrapper {
+  display: block !important;
+  width: 100%;
+}
+.review-section-title {
+  display: block;
+  margin-bottom: 18px;
+  color: #24324b;
+}
+.review-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.review-summary-card {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #dce5f1;
+  border-radius: 8px;
+  background: #fff;
+}
+.review-summary-card-header {
+  padding: 12px 15px;
+  font-weight: 700;
+  color: #24324b;
+  background: #f4f7fb;
+  border-bottom: 1px solid #dce5f1;
+}
+.review-header-blue {
+  background: #edf4ff;
+}
+.review-header-red {
+  background: #fff0f0;
+}
+.review-header-green {
+  background: #effaf3;
+}
+.review-summary-card-body {
+  display: block !important;
+  padding: 12px 15px;
+}
+.review-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 13px;
+}
+.review-value-row:last-child {
+  border-bottom: 0;
+}
+.review-value-row > span {
+  flex: 0 0 42%;
+  color: #718096;
+}
+.review-value-row > strong {
+  flex: 1;
+  min-width: 0;
+  color: #263449;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.review-documents-card {
+  margin-top: 16px;
+  height: auto;
+}
+.review-documents-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+@media (max-width: 991px) {
+  .review-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 575px) {
+  .review-documents-grid {
+    grid-template-columns: 1fr;
+  }
+  .review-value-row {
+    gap: 8px;
+  }
 }
 /* ==========================================================
    Responsive
