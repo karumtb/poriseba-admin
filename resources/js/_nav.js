@@ -61,7 +61,7 @@ export default function getNav(user) {
 
     {
       component: 'CNavItem',
-      name: 'Enrolment',
+      name: 'Manpower',
       to: '/enrolment',
       icon: cilClipboard,
     },

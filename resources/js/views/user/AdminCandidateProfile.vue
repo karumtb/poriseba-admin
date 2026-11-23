@@ -8,7 +8,7 @@
           <p>{{ breadcrumb }}</p>
         </div>
       </div>
-      <button class="edit-profile-btn" type="button" @click="$emit('edit', candidate)">✎ Edit Profile</button>
+      <button class="edit-profile-btn" type="button" @click="$emit('edit', candidate?.id)">✎ Edit Profile</button>
     </div>
 
     <div v-if="!candidate" class="profile-empty">No candidate information available.</div>
@@ -160,8 +160,7 @@
               :src="documentUrl('profile_photo')"
               class="document-photo-preview"
               alt="Caregiver profile photo"
-              @error="photoFailed = true"
-            />
+              @error="photoFailed = true" />
             <p v-else class="muted">Profile photo not uploaded.</p>
             <a
               v-if="documentUrl('profile_photo')"
@@ -169,7 +168,8 @@
               target="_blank"
               rel="noopener"
               class="document-view-link"
-            >View profile photo ↗</a>
+              >View profile photo ↗</a
+            >
           </div>
         </article>
 
@@ -178,13 +178,9 @@
           <div class="document-card-body">
             <div v-if="documentUrl('adhar_pdf')" class="document-file-icon">PDF</div>
             <div class="document-details">
-              <a
-                v-if="documentUrl('adhar_pdf')"
-                :href="documentUrl('adhar_pdf')"
-                target="_blank"
-                rel="noopener"
-                class="document-view-link"
-              >View Aadhaar document ↗</a>
+              <a v-if="documentUrl('adhar_pdf')" :href="documentUrl('adhar_pdf')" target="_blank" rel="noopener" class="document-view-link"
+                >View Aadhaar document ↗</a
+              >
               <p v-else class="muted">Aadhaar document not uploaded.</p>
             </div>
           </div>
@@ -201,7 +197,8 @@
                 target="_blank"
                 rel="noopener"
                 class="document-view-link"
-              >View certificate ↗</a>
+                >View certificate ↗</a
+              >
               <p v-else class="muted">Certificate not uploaded.</p>
             </div>
           </div>
@@ -370,14 +367,7 @@ function documentUrl(field) {
   // Match the document preview fields used by the enrolment form,
   // while also supporting the persisted Laravel file/path fields.
   const fields = {
-    profile_photo: [
-      c.profilePreviewUrl,
-      c.profilePhotoPreviewUrl,
-      c.profile_photo_url,
-      c.photo_url,
-      c.profile_photo,
-      c.profile_photo_file,
-    ],
+    profile_photo: [c.profilePreviewUrl, c.profilePhotoPreviewUrl, c.profile_photo_url, c.photo_url, c.profile_photo, c.profile_photo_file],
     adhar_pdf: [
       c.aadhaarPreviewUrl,
       c.aadhaar_preview_url,
@@ -400,16 +390,11 @@ function documentUrl(field) {
     ],
   };
 
-  const value = (fields[field] || []).find(
-    (item) => item !== null && item !== undefined && item !== ''
-  );
+  const value = (fields[field] || []).find((item) => item !== null && item !== undefined && item !== '');
 
   if (!value) return '';
 
-  const rawUrl =
-    typeof value === 'object'
-      ? value.url || value.path || value.full_url || value.original_url
-      : value;
+  const rawUrl = typeof value === 'object' ? value.url || value.path || value.full_url || value.original_url : value;
 
   if (typeof rawUrl !== 'string' || !rawUrl.trim()) return '';
 
