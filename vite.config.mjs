@@ -1,46 +1,31 @@
-import { defineConfig, loadEnv } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url'
-import autoprefixer from 'autoprefixer'
+import { defineConfig, loadEnv } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
+import autoprefixer from 'autoprefixer';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = loadEnv(mode, process.cwd(), '');
 
-  console.log('MODE:', mode)
-
+  console.log('MODE:', mode);
 
   return {
-    plugins: [
-      vue(),
-    ],
+    publicDir: false,
+    plugins: [vue()],
 
     base: env.VITE_BASE_URL || '/',
 
     css: {
       postcss: {
-        plugins: [
-          autoprefixer(),
-        ],
+        plugins: [autoprefixer()],
       },
     },
 
     resolve: {
       alias: {
-        '@': fileURLToPath(
-          new URL('./resources/js', import.meta.url)
-        ),
+        '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
       },
 
-      extensions: [
-        '.mjs',
-        '.js',
-        '.ts',
-        '.jsx',
-        '.tsx',
-        '.json',
-        '.vue',
-        '.scss',
-      ],
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue', '.scss'],
     },
 
     build: {
@@ -52,5 +37,5 @@ export default defineConfig(({ mode }) => {
         input: 'resources/js/main.js',
       },
     },
-  }
-})
+  };
+});
