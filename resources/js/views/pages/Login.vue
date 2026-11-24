@@ -11,6 +11,7 @@ import logo from '@/assets/images/logo.png';
 import imgg2 from '@/assets/images/imgg2.png';
 import usericon from '@/assets/images/name.png';
 import lockicon from '@/assets/images/lock.png';
+import homeicon from '@/assets/images/home.png';
 import { cilLockLocked, cilEnvelopeClosed } from '@coreui/icons';
 const router = useRouter();
 const authStore = useAuthStore();
@@ -82,6 +83,7 @@ onMounted(() => {
         <img :src="imgg2" alt="" />
       </div>
       <div class="col-md-6 p-4 text-center d-flex align-items-center justify-content-center">
+        <a class="home-link" href="/"><img :src="homeicon" alt="" /></a>
         <div class="loginmain text-center">
           <div class="loginlogo">
             <img :src="logo" alt="" />

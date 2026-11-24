@@ -958,9 +958,28 @@ background: #ffe3ef;
     background: #fdf2f8;
     border-radius: 10px 0 10px 10px;
 }
+.home-link {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 44px;
+    height: 44px;
+    padding: 8px; 
+    border-radius:100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f3f3;
+}
+.home-link:hover{
+    background: #ffdcdc;
+}
+.home-link img{
+    max-width:100%;
+}
 /* =========================================================
-  RESPONSIVE
-  ========================================================= */
+RESPONSIVE
+========================================================= */
 
 @media (max-width: 991px) {
   .modal-dialog.modal-xl {
@@ -3651,5 +3670,12 @@ table.p-datatable-table .p-datatable-column-title{font-weight: inherit !importan
 .patient-management-page .footer-actions .btn{font-size: 12px;}
 .patient-management-page .footer-actions .btn .icon{
   width: 12px;
+}
+.loginlogo img {
+    width: 170px;
+}
+.home-link { 
+    top: 10px;
+    right: 10px;
 }
 }
