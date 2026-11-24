@@ -8,7 +8,7 @@
           <p>{{ breadcrumb }}</p>
         </div>
       </div>
-      <button class="edit-profile-btn" type="button" @click="$emit('edit', candidate?.id)">✎ Edit Profile</button>
+      <button class="edit-profile-btn btn-primary" type="button" @click="$emit('edit', candidate?.id)">✎ Edit Profile</button>
     </div>
 
     <div v-if="!candidate" class="profile-empty">No candidate information available.</div>
@@ -19,20 +19,21 @@
         <div v-else class="admin-profile-photo photo-placeholder">{{ initials }}</div>
 
         <div class="summary-identity">
-          <strong class="candidate-code">{{ get('caregiver_code', 'candidate_code') }}</strong>
-          <h1>{{ fullName }}</h1>
-          <p>
-            ♟ {{ designationName }} <span v-if="candidate.profile_type"> · {{ candidate.profile_type }}</span>
-          </p>
-          <p>
-            ♙ Age: {{ ageLabel }} <span v-if="genderLabel"> | {{ genderLabel }}</span>
-          </p>
-          <p>⌖ {{ locationLabel }}</p>
+            <strong class="candidate-code">{{ get('caregiver_code', 'candidate_code') }}</strong>
+            <h1>{{ fullName }}</h1>
+            <p>
+              ♟ {{ designationName }} <span v-if="candidate.profile_type"> · {{ candidate.profile_type }}</span>
+            </p>
+            <p>
+              ♙ Age: {{ ageLabel }} <span v-if="genderLabel"> | {{ genderLabel }}</span>
+            </p>
+            <p>⌖ {{ locationLabel }}</p>
+            <div class="summary-status">
+              <span class="status-pill" :class="isActive ? 'active' : 'inactive'">{{ isActive ? 'Active' : 'Pending' }}</span>
+            </div>
         </div>
 
-        <div class="summary-status">
-          <span class="status-pill" :class="isActive ? 'active' : 'inactive'">{{ isActive ? 'Active' : 'Pending' }}</span>
-        </div>
+       
 
         <div class="summary-progress">
           <div class="summary-progress-row">
@@ -56,7 +57,7 @@
 
       <section v-if="activeTab === 'personal'" class="admin-profile-content three-columns">
         <article class="profile-info-card">
-          <h3>Basic Information</h3>
+          <h3 class="bg-red">Basic Information</h3>
           <InfoRow label="First Name" :value="candidate.first_name" />
           <InfoRow label="Last Name" :value="candidate.last_name" />
           <InfoRow label="Gender" :value="genderLabel" />
@@ -70,7 +71,7 @@
         </article>
 
         <article class="profile-info-card">
-          <h3>Address</h3>
+          <h3 class="bg-green">Address</h3>
           <InfoRow label="Address Line 1" :value="candidate.address" />
           <InfoRow label="Locality" :value="candidate.area?.name || candidate.locality || candidate.city" />
           <InfoRow label="City" :value="candidate.city" />
@@ -95,13 +96,13 @@
 
       <section v-else-if="activeTab === 'education'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Education</h3>
+          <h3 class="bg-red">Education</h3>
           <InfoRow label="Highest Qualification" :value="candidate.highest_qualification" />
           <InfoRow label="Qualification Details" :value="candidate.qualification_details" />
           <InfoRow label="Institution" :value="candidate.institution_name" />
         </article>
         <article class="profile-info-card">
-          <h3>Additional Information</h3>
+          <h3 class="bg-green">Additional Information</h3>
           <InfoRow label="Specialization" :value="candidate.specialization" />
           <InfoRow label="Religion" :value="candidate.religion?.name || candidate.religion_name" />
           <InfoRow label="Preferred Language" :value="candidate.language?.name || candidate.language_name" />
@@ -110,27 +111,27 @@
 
       <section v-else-if="activeTab === 'skills'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Skills & Specialization</h3>
+          <h3 class="bg-red">Skills & Specialization</h3>
           <InfoRow label="Designation" :value="designationName" />
           <InfoRow label="Primary Role" :value="candidate.primary_role" />
           <InfoRow label="Specialization" :value="candidate.specialization" />
           <InfoRow label="Experience" :value="experienceLabel" />
         </article>
         <article class="profile-info-card">
-          <h3>Professional Summary</h3>
+          <h3 class="bg-green">Professional Summary</h3>
           <p class="professional-summary">{{ label(candidate.professional_summary) }}</p>
         </article>
       </section>
 
       <section v-else-if="activeTab === 'experience'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Experience</h3>
+          <h3 class="bg-red">Experience</h3>
           <InfoRow label="Total Experience" :value="experienceLabel" />
           <InfoRow label="Previous Employer" :value="candidate.previous_employer" />
           <InfoRow label="Career Status" :value="candidate.career_status" />
         </article>
         <article class="profile-info-card">
-          <h3>Placement History</h3>
+          <h3 class="bg-green">Placement History</h3>
           <InfoRow label="Placement Location" :value="candidate.placement_location" />
           <InfoRow label="Placement Start" :value="dateLabel(candidate.placement_start)" />
           <InfoRow label="Placement End" :value="dateLabel(candidate.placement_end)" />
@@ -139,13 +140,13 @@
 
       <section v-else-if="activeTab === 'verification'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Verification</h3>
+          <h3 class="bg-red">Verification</h3>
           <InfoRow label="Verification Status" :value="candidate.verification_status" />
           <InfoRow label="Verified At" :value="dateLabel(candidate.verified_at)" />
           <InfoRow label="Verification Remark" :value="candidate.verification_remark" />
         </article>
         <article class="profile-info-card">
-          <h3>Review & Approval</h3>
+          <h3 class="bg-green">Review & Approval</h3>
           <InfoRow label="Record Status" :value="isActive ? 'Active' : 'Pending'" />
           <InfoRow label="Vendor" :value="candidate.vendor?.name || candidate.vendor_name" />
         </article>
@@ -153,7 +154,7 @@
 
       <section v-else-if="activeTab === 'documents'" class="admin-profile-content document-grid">
         <article class="profile-info-card document-card">
-          <h3>Profile Photo</h3>
+          <h3 class="bg-red">Profile Photo</h3>
           <div class="document-card-body">
             <img
               v-if="documentUrl('profile_photo')"
@@ -167,7 +168,7 @@
               :href="documentUrl('profile_photo')"
               target="_blank"
               rel="noopener"
-              class="document-view-link"
+              class="document-view-link btn btn-outline-light"
               >View profile photo ↗</a
             >
           </div>
@@ -178,7 +179,7 @@
           <div class="document-card-body">
             <div v-if="documentUrl('adhar_pdf')" class="document-file-icon">PDF</div>
             <div class="document-details">
-              <a v-if="documentUrl('adhar_pdf')" :href="documentUrl('adhar_pdf')" target="_blank" rel="noopener" class="document-view-link"
+              <a v-if="documentUrl('adhar_pdf')" :href="documentUrl('adhar_pdf')" target="_blank" rel="noopener" class="document-view-link btn btn-outline-light"
                 >View Aadhaar document ↗</a
               >
               <p v-else class="muted">Aadhaar document not uploaded.</p>
@@ -187,7 +188,7 @@
         </article>
 
         <article class="profile-info-card document-card">
-          <h3>Qualification Certificate</h3>
+          <h3 class="bg-green">Qualification Certificate</h3>
           <div class="document-card-body">
             <div v-if="documentUrl('certificate_pdf')" class="document-file-icon certificate">PDF</div>
             <div class="document-details">
@@ -196,7 +197,7 @@
                 :href="documentUrl('certificate_pdf')"
                 target="_blank"
                 rel="noopener"
-                class="document-view-link"
+                class="document-view-link btn btn-outline-light"
                 >View certificate ↗</a
               >
               <p v-else class="muted">Certificate not uploaded.</p>
@@ -207,20 +208,20 @@
 
       <section v-else-if="activeTab === 'availability'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Availability</h3>
+          <h3 class="bg-red">Availability</h3>
           <InfoRow label="Availability Status" :value="candidate.availability_status" />
           <InfoRow label="Currently Engaged" :value="candidate.is_engaged ? 'Yes' : 'No'" />
           <InfoRow label="Preferred Duty Types" :value="listText(candidate.preferred_duty_types)" />
         </article>
         <article class="profile-info-card">
-          <h3>Preferred Locations</h3>
+          <h3 class="bg-green">Preferred Locations</h3>
           <p class="professional-summary">{{ listText(candidate.preferred_locations) }}</p>
         </article>
       </section>
 
       <section v-else-if="activeTab === 'placement'" class="admin-profile-content two-columns">
         <article class="profile-info-card">
-          <h3>Placement Details</h3>
+          <h3 class="bg-red">Placement Details</h3>
           <InfoRow label="Placement Status" :value="candidate.placement_status" />
           <InfoRow label="Placement Location" :value="candidate.placement_location" />
           <InfoRow label="Start Date" :value="dateLabel(candidate.placement_start)" />
@@ -228,7 +229,7 @@
           <InfoRow label="Hospital ID" :value="candidate.hospital_id" />
         </article>
         <article class="profile-info-card">
-          <h3>Ratings & Reviews</h3>
+          <h3 class="bg-green">Ratings & Reviews</h3>
           <InfoRow label="Rating" :value="candidate.rating" />
           <InfoRow label="Facebook Review" :value="stripHtml(candidate.fb_reviews)" />
           <InfoRow label="Instagram Review" :value="stripHtml(candidate.insta_reviews)" />
@@ -239,7 +240,7 @@
       <section v-else class="admin-profile-content">
         <article class="profile-info-card">
           <h3>Notes</h3>
-          <p class="professional-summary">{{ label(candidate.remark, 'No notes available.') }}</p>
+          <div class="professional-summary">{{ label(candidate.remark, 'No notes available.') }}</div>
         </article>
       </section>
     </template>
@@ -439,14 +440,13 @@ const InfoRow = defineComponent({
   min-height: 300px;
 }
 .admin-profile-banner {
-  background: linear-gradient(105deg, #0e416f, #15558a);
-  color: #fff;
-  padding: 12px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-radius: 5px 5px 0 0;
+    color: #000000;
+    background-color: #fff0f7;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    display: flex;
 }
 .banner-title {
   display: flex;
@@ -454,13 +454,16 @@ const InfoRow = defineComponent({
   gap: 10px;
 }
 .banner-avatar-icon {
+  border: 1px solid #ffffff;
+  border-radius: 6px;
+  place-items: center;
+  background: #db0a5f;
   width: 32px;
   height: 32px;
-  border: 1px solid #ffffff70;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
   font-size: 21px;
+  color: #fff;
+  display: grid;
+  flex-shrink: 0;
 }
 .banner-title h2 {
   font-size: 15px;
@@ -468,9 +471,9 @@ const InfoRow = defineComponent({
   margin: 0;
 }
 .banner-title p {
-  font-size: 10px;
-  margin: 3px 0 0;
-  color: #d9e9f7;
+    color: #5e6e7c;
+    margin: 3px 0 0;
+    font-size: 10px;
 }
 .edit-profile-btn {
   background: transparent;
@@ -483,16 +486,16 @@ const InfoRow = defineComponent({
   cursor: pointer;
 }
 .admin-profile-summary {
-  display: grid;
-  grid-template-columns: 94px minmax(180px, 1fr) auto minmax(190px, 270px);
-  gap: 14px;
-  align-items: center;
-  padding: 15px 18px;
-  border-bottom: 1px solid #e8edf3;
+    border-bottom: 1px solid #e8edf3;
+    grid-template-columns: 105px minmax(280px,1fr) 390px;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 18px;
+    display: grid;
 }
 .admin-profile-photo {
   width: 92px;
-  height: 96px;
+  height: 124px;
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #e0e8ef;
@@ -510,14 +513,15 @@ const InfoRow = defineComponent({
   color: #154d82;
 }
 .summary-identity h1 {
-  font-size: 17px;
-  margin: 2px 0 5px;
-  color: #1d2f43;
+    color: #000000;
+    margin: 2px 0 5px;
+    font-size: 17px;
+    font-weight: 600;
 }
 .summary-identity p {
-  font-size: 10px;
-  margin: 4px 0;
-  color: #536477;
+    color: #505050;
+    margin: 4px 0;
+    font-size: 12px;
 }
 .status-pill {
   font-size: 10px;
@@ -550,13 +554,13 @@ const InfoRow = defineComponent({
   gap: 4px;
 }
 .summary-progress strong {
-  font-size: 10px;
+  font-size: 12px;
 }
 .status-chip {
   width: max-content;
   border-radius: 4px;
   padding: 3px 6px;
-  font-size: 9px;
+  font-size: 11px;
 }
 .status-chip.green {
   background: #d9f5e8;
@@ -566,6 +570,7 @@ const InfoRow = defineComponent({
   background: #dceeff;
   color: #1767a5;
 }
+ 
 .completion-title {
   margin-top: 2px;
 }
@@ -574,6 +579,7 @@ const InfoRow = defineComponent({
   background: #dce5ed;
   border-radius: 10px;
   overflow: hidden;
+  margin-top:0;
 }
 .progress-track span {
   display: block;
@@ -596,14 +602,15 @@ const InfoRow = defineComponent({
   background: #f8fafc;
 }
 .admin-profile-tabs button {
-  flex: 0 0 auto;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  background: transparent;
-  padding: 11px 12px;
-  font-size: 10px;
-  color: #526477;
+  color: #000000;
   cursor: pointer;
+  background: 0 0;
+  border: 0;
+  border-bottom: 3px solid #0000;
+  flex: none;
+  padding: 11px 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 .admin-profile-tabs button.selected {
   background: #fff;
@@ -629,12 +636,18 @@ const InfoRow = defineComponent({
   min-width: 0;
 }
 .profile-info-card h3 {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   color: #263d55;
   background: #edf4fb;
   padding: 7px 9px;
   margin: 0;
+}
+.profile-info-card h3.bg-red{
+  background: #ffe5f0;
+}
+.profile-info-card h3.bg-green{
+  background: #deffe9;
 }
 .profile-info-card h3.inner-heading {
   margin-top: 10px;
@@ -645,7 +658,7 @@ const InfoRow = defineComponent({
   gap: 5px;
   padding: 5px 8px;
   border-bottom: 1px solid #edf1f5;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.35;
 }
 .admin-info-row:last-child {
@@ -660,7 +673,7 @@ const InfoRow = defineComponent({
   overflow-wrap: anywhere;
 }
 .professional-summary {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.55;
   color: #536477;
   padding: 9px;
@@ -762,14 +775,25 @@ const InfoRow = defineComponent({
   text-align: center;
   color: #7c8795;
 }
-@media (max-width: 760px) {
+@media (max-width: 991px) {
+.admin-profile-tabs button{
+  padding: 12px 10px;
+}
+.admin-profile-summary{
+  grid-template-columns: 105px minmax(260px,1fr) 1fr;
+}
+.three-columns{
+    grid-template-columns: 1fr 1fr;
+}
+}
+@media (max-width: 767px) {
   .admin-profile-summary {
-    grid-template-columns: 75px 1fr;
+    grid-template-columns: auto 1fr;
     gap: 10px;
   }
   .admin-profile-photo {
-    width: 74px;
-    height: 78px;
+    width: 112px;
+    height: 140px;
   }
   .summary-status {
     grid-column: 2;

@@ -8,6 +8,14 @@ body {
     Roboto,
     sans-serif;
 }
+:root{
+  --pm-primary: #db2777;
+  --pm-primary-dark: #a20041;
+  --pm-text: #172554;
+  --pm-muted: #64748b;
+  --pm-border: #dce6f2;
+  --pm-soft: #f7faff;
+}
 .loader-overlay {
   position: absolute;
   inset: 0;
@@ -695,6 +703,8 @@ div.border-bottom {
 .loginpage .form-check-label, .loginpage .form-label {
     color: #000;
     font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
 }
 .loginpage .input-group {
     flex-wrap: wrap;
@@ -739,6 +749,7 @@ div.border-bottom {
     color: #db0a5f;
     text-decoration: none !important;
     font-weight: 600;
+    font-size: 15px;
 }
 .forgotpass a:hover{
   color: #b0084b;
@@ -893,11 +904,15 @@ div.border-bottom {
 .modal-dialog.modal-xl {
   max-width: 850px;
 }
-
+.modal-dialog.modal-xxl{
+  max-width: 1000px;
+}
 .modal-content {
   border-radius: 12px;
 }
-
+.modal-header{
+background: #ffe3ef;
+}
 /* =========================================================
    MODAL BODY
    ========================================================= */
@@ -938,9 +953,14 @@ div.border-bottom {
   border-color: var(--pm-primary);
   background-color: var(--pm-primary);
 }
+
+.header-nav .dropdown-menu { 
+    background: #fdf2f8;
+    border-radius: 10px 0 10px 10px;
+}
 /* =========================================================
-   RESPONSIVE
-   ========================================================= */
+  RESPONSIVE
+  ========================================================= */
 
 @media (max-width: 991px) {
   .modal-dialog.modal-xl {
@@ -2390,10 +2410,10 @@ color: #db2777 !important;
   .add-request-form {
     grid-template-columns: 1fr;
   }
-  .form-footer {
+  /* .form-footer {
     align-items: stretch;
     flex-direction: column;
-  }
+  } */
   .form-footer > .btn {
     align-self: flex-start;
   }
@@ -2406,7 +2426,7 @@ color: #db2777 !important;
     margin-top: 20px;
   }
   .patient-management-page .stepper-item {
-    --width: 49% !important; 
+    --width: 40% !important; 
   }
   .footer-copyright{justify-content: center !important;}
   .patient-management-page .patient-summary-grid{
@@ -2576,6 +2596,7 @@ select.form-control{
 .patient-management-page .status-tag {
   font-size: 11px;
 } */
+.btn svg{flex-shrink: 0;}
 .body-part .btn,
 .patient-management-page .btn {
   font-size: 13px;
@@ -2835,7 +2856,7 @@ select.form-control{
   color: #e9005b !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .patient-management-page .stepper {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 8px 4px;
@@ -3358,6 +3379,9 @@ table.p-datatable-table tbody td {
   font-size: 13px;
   border-bottom: 1px solid #edf2f7; 
 }
+table.p-datatable-table tbody td:last-child{
+  min-width: 130px;
+}
 table.p-datatable-table tbody td .btn{
   width: 26px;
   height: 26px;
@@ -3482,24 +3506,66 @@ table.p-datatable-table .p-datatable-column-title{font-weight: inherit !importan
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 24px;
 }
-@media (max-width: 991px) {
-  .review-summary-grid {
-    grid-template-columns: 1fr;
-  }
+
+
+.patient-list-img {
+  width: 55px !important;
+  height: 55px !important;
+  min-width: 55px;
+  max-width: 55px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+  overflow: hidden;
+  flex-shrink: 0;
 }
-@media (max-width: 575px) {
-  .review-documents-grid {
-    grid-template-columns: 1fr;
-  }
-  .review-value-row {
-    gap: 8px;
-  }
+/* Center all DataTable headers and cells */
+:deep(.patient-table .p-datatable-thead > tr > th) {
+  text-align: center !important;
+}
+
+:deep(.patient-table .p-datatable-column-header-content) {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+:deep(.patient-table .p-datatable-tbody > tr > td) {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.row.patient-management-page{
+--cui-gutter-x: 0;
+}
+
+.dropdown-menu .dropdown-header{
+  margin: 0 !important;
+}
+.dropdown-item:hover{
+  background-color: var(--pm-primary) !important;
+  color: #fff !important;
 }
 /* ==========================================================
    Responsive
 ========================================================== */
-
+@media (max-width: 1199px) {
+.pb-stat-card { 
+    gap: 10px;
+    padding: 8px 14px; 
+}
+.patient-management-page .stepper{gap: 20px;}
+.patient-management-page table.p-datatable-table tbody td{
+  white-space: nowrap;
+}
+.patient-identity a{font-size: 11px;}
+}
 @media (max-width: 991px) {
+  .review-summary-grid {
+    grid-template-columns: 1fr;
+  } 
   .fee-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -3534,32 +3600,56 @@ table.p-datatable-table .p-datatable-column-title{font-weight: inherit !importan
   .radio-options {
     gap: 15px;
   }
+  .patient-management-page .stepper{
+    padding: 10px 0 12px;
+  }
+  .patient-management-page .enrolment-wizard-form .stepper {
+      padding: 10px 0 30px;
+  }
+  .patient-management-page .enrolment-wizard-form .stepper-item{
+    --width: 140px !important;
+  }
+  
 }
-.patient-list-img {
-  width: 55px !important;
-  height: 55px !important;
-  min-width: 55px;
-  max-width: 55px;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 50%;
-  display: block;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-/* Center all DataTable headers and cells */
-:deep(.patient-table .p-datatable-thead > tr > th) {
-  text-align: center !important;
+@media (max-width: 575px) {
+  .review-documents-grid {
+    grid-template-columns: 1fr;
+  }
+  .review-value-row {
+    gap: 8px;
+  }
+  .p-paginator-content .p-select{
+    height: 26px;
+  }
+  
 }
 
-:deep(.patient-table .p-datatable-column-header-content) {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
+@media (max-width: 479px) {
+.bulk-approve-bar { 
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
 }
-
-:deep(.patient-table .p-datatable-tbody > tr > td) {
-  text-align: center !important;
-  vertical-align: middle !important;
+.pb-card-icon svg {
+    width: 18px!important; 
+}
+.pb-card-header-left {  
+    gap: 8px; 
+}
+.form-label, .field-group label { 
+    margin: 0 0 5px !important; 
+}
+.patient-management-page .enrolment-wizard-form .stepper-item {
+    --width: 120px!important;
+}
+.patient-identity strong{
+  font-size: 13px;
+}
+.patient-management-page .footer-actions{
+  flex-wrap: wrap;
+}
+.patient-management-page .footer-actions .btn{font-size: 12px;}
+.patient-management-page .footer-actions .btn .icon{
+  width: 12px;
+}
 }

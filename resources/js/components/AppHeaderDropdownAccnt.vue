@@ -34,16 +34,12 @@ const logout = async () => {
       <CAvatar :src="authStore?.user?.profileImageUrl" size="md"   v-if="authStore?.user?.profileImageUrl" />
       <div class="placeholder-icon"  v-else>👤</div>
     </CDropdownToggle>
-    <CDropdownMenu class="pt-0">
+    <CDropdownMenu>
 
 
-      <CDropdownHeader
-        component="h6"
-        class="bg-body-secondary text-body-secondary fw-semibold my-2"
-      >
+      <CDropdownItem class="dropdown-item">
         {{authStore.user?.name}}
-      </CDropdownHeader>
-
+      </CDropdownItem> 
       <CDropdownItem @click="logout" style="cursor: pointer"><CIcon :icon="cilLockLocked" /> Logout </CDropdownItem>
     </CDropdownMenu>
   </CDropdown>

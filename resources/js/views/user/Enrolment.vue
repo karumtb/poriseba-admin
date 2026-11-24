@@ -1120,7 +1120,7 @@ const toogleStatus = async (id = null) => {
           </CButton>
         </CCardHeader>
 
-        <CCardBody>
+        <CCardBody class="px-0 pb-0">
           <CCard class="filter-card mb-4">
             <CCardBody class="py-4">
               <div class="row g-3 align-items-end">
@@ -1167,7 +1167,7 @@ const toogleStatus = async (id = null) => {
               </div>
             </CCardBody>
           </CCard>
-          <div class="card onboarding-panel">
+          <div class="card onboarding-panel p-3 mb-0">
             <div class="bulk-approve-bar mb-3" v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'">
               <div class="selected-info">
                 <span class="selected-count">
@@ -1176,6 +1176,7 @@ const toogleStatus = async (id = null) => {
 
                 <span class="selected-text"> records selected </span>
               </div>
+              
               <CButton
                 color="success"
                 :disabled="selectedEnrolments.length === 0 || approving"
@@ -1194,7 +1195,7 @@ const toogleStatus = async (id = null) => {
                 <CSpinner v-if="approving" size="sm" class="me-2" />
                 <CIcon :icon="cilCheckCircle" class="me-2" v-else />
                 Hiring Request
-              </CButton>
+              </CButton> 
             </div>
             <DataTable
               v-model:selection="selectedEnrolments"
@@ -1259,27 +1260,27 @@ const toogleStatus = async (id = null) => {
               </Column>
               <Column header="Designation" #body="{ data }">{{ data?.designation?.name }}</Column>
               <Column header="Action">
-                <template #body="{ data }">
-                  <CButton
-                    color="warning"
-                    variant="outline"
-                    size="sm"
-                    class="me-2 mb-2"
-                    @click="releaseEnrolement(data.id)"
-                    v-if="data.hospital_id && authStore.user.role == 'admin'">
-                    <CIcon :icon="cilLockUnlocked" />
-                  </CButton>
-                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
-                    <CIcon :icon="cilLowVision" />
-                  </CButton>
-                  <template v-if="authStore.user.role != 'hospital'">
-                    <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
-                      <CIcon :icon="cilPencil" />
-                    </CButton>
+                <template #body="{ data }"> 
+                        <CButton
+                          color="warning"
+                          variant="outline"
+                          size="sm"
+                          class="me-2 mb-2"
+                          @click="releaseEnrolement(data.id)"
+                          v-if="data.hospital_id && authStore.user.role == 'admin'">
+                          <CIcon :icon="cilLockUnlocked" />
+                        </CButton>
+                        <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
+                          <CIcon :icon="cilLowVision" />
+                        </CButton>
+                        <template v-if="authStore.user.role != 'hospital'">
+                          <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
+                            <CIcon :icon="cilPencil" />
+                          </CButton>
 
-                    <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
-                      <CIcon :icon="cilTrash" />
-                    </CButton>
+                          <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
+                            <CIcon :icon="cilTrash" />
+                          </CButton> 
                   </template>
                 </template>
               </Column>
@@ -1309,7 +1310,7 @@ const toogleStatus = async (id = null) => {
           </CButton>
         </CCardHeader>
 
-        <CCardBody>
+        <CCardBody class="px-0">
           <CForm
             class="enrolment-wizard-form needs-validation layout-fixed-form"
             novalidate
@@ -1340,7 +1341,7 @@ const toogleStatus = async (id = null) => {
               <div class="enrolment-step-panel">
                 <!-- STEP 1: BASIC INFORMATION -->
                 <section v-if="activeStep === 1" class="enrolment-step-section review-content-wrapper">
-                  <h5 class="enrolment-section-heading pb-section-title review-section-title">Basic Information</h5>
+                  <h5 class="enrolment-section-heading pb-section-title review-section-title mt-0">Basic Information</h5>
                   <p class="enrolment-section-description">Enter caregiver personal details and contact information.</p>
                   <CRow>
                     <CCol md="4" class="mb-3">
@@ -2205,7 +2206,7 @@ const toogleStatus = async (id = null) => {
   <CModal
     :visible="visibleLiveDemo"
     aria-labelledby="CandidateProfileModalTitle"
-    size="xl"
+    size="xxl"
     alignment="center"
     scrollable
     @close="visibleLiveDemo = false">
