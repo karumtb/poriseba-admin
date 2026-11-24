@@ -1176,7 +1176,7 @@ const toogleStatus = async (id = null) => {
 
                 <span class="selected-text"> records selected </span>
               </div>
-              
+
               <CButton
                 color="success"
                 :disabled="selectedEnrolments.length === 0 || approving"
@@ -1195,7 +1195,7 @@ const toogleStatus = async (id = null) => {
                 <CSpinner v-if="approving" size="sm" class="me-2" />
                 <CIcon :icon="cilCheckCircle" class="me-2" v-else />
                 Hiring Request
-              </CButton> 
+              </CButton>
             </div>
             <DataTable
               v-model:selection="selectedEnrolments"
@@ -1260,27 +1260,27 @@ const toogleStatus = async (id = null) => {
               </Column>
               <Column header="Designation" #body="{ data }">{{ data?.designation?.name }}</Column>
               <Column header="Action">
-                <template #body="{ data }"> 
-                        <CButton
-                          color="warning"
-                          variant="outline"
-                          size="sm"
-                          class="me-2 mb-2"
-                          @click="releaseEnrolement(data.id)"
-                          v-if="data.hospital_id && authStore.user.role == 'admin'">
-                          <CIcon :icon="cilLockUnlocked" />
-                        </CButton>
-                        <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
-                          <CIcon :icon="cilLowVision" />
-                        </CButton>
-                        <template v-if="authStore.user.role != 'hospital'">
-                          <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
-                            <CIcon :icon="cilPencil" />
-                          </CButton>
+                <template #body="{ data }">
+                  <CButton
+                    color="warning"
+                    variant="outline"
+                    size="sm"
+                    class="me-2 mb-2"
+                    @click="releaseEnrolement(data.id)"
+                    v-if="data.hospital_id && authStore.user.role == 'admin'">
+                    <CIcon :icon="cilLockUnlocked" />
+                  </CButton>
+                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
+                    <CIcon :icon="cilLowVision" />
+                  </CButton>
+                  <template v-if="authStore.user.role != 'hospital'">
+                    <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
+                      <CIcon :icon="cilPencil" />
+                    </CButton>
 
-                          <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
-                            <CIcon :icon="cilTrash" />
-                          </CButton> 
+                    <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
+                      <CIcon :icon="cilTrash" />
+                    </CButton>
                   </template>
                 </template>
               </Column>
