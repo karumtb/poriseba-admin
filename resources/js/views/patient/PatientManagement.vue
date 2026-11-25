@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch, reactive, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import Select from 'primevue/select';
+import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
 
 import { PATIENT_DROPDOWNS } from '@/constants/patientDropdowns';
 import { indianStates } from '@/constants/indianStates';
@@ -9,7 +12,7 @@ import { useFileUpload } from '@/services/useFileUpload';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
-import { CRow, CCol, CCard, CCardHeader, CCardBody, CButton, CFormInput, CFormSelect, CFormFeedback } from '@coreui/vue';
+import { CRow, CCol, CCard, CCardHeader, CCardBody, CButton, CFormInput, CFormSelect, CFormFeedback, CSpinner } from '@coreui/vue';
 import CIcon from '@coreui/icons-vue';
 import { CDatePicker } from '@coreui/vue-pro';
 import { useToast } from 'vue-toastification';
@@ -17,7 +20,7 @@ import api from '@/services/adminAxios';
 const toast = useToast();
 import moment from 'moment';
 import { loadingStore } from '@/services/loading';
-
+const savingDesignation = ref(false);
 import {
   cilPeople,
   cilHeart,
@@ -62,6 +65,9 @@ const props = defineProps({
 | Later, replace these refs with API/service calls.
 |--------------------------------------------------------------------------
 */
+const designations = ref([]);
+const showAddDesignation = ref(false);
+const newDesignation = ref('');
 const route = useRoute();
 const router = useRouter();
 const patients = ref([]);
@@ -793,6 +799,81 @@ const getPatients = async () => {
   } finally {
   }
 };
+const getDesignations = async () => {
+  try {
+    const response = await api.post('/designation/listing', {});
+    const result = response?.data?.data;
+    designations.value = Array.isArray(result) ? result : [];
+  } catch (error) {
+    console.error('Designation Error:', error);
+    toast.error(error?.response?.data?.message || 'Unable to load designations.');
+  }
+};
+
+// Create a designation using the existing admin Axios instance and merge
+// the API response into the master list used by the PrimeVue Select.
+const addNewDesignation = async () => {
+  const name = newDesignation.value.trim();
+
+  if (!name) {
+    toast.error('Please enter service category name.');
+    return;
+  }
+
+  const existingDesignation = designationOptions.value.find(
+    (item) => item.label.toLowerCase() === name.toLowerCase(),
+  );
+
+  if (existingDesignation) {
+    careForm.serviceCategory = existingDesignation.value;
+    validateCareField('serviceCategory');
+    newDesignation.value = '';
+    showAddDesignation.value = false;
+    toast.info('This service category already exists and has been selected.');
+    return;
+  }
+
+  try {
+    savingDesignation.value = true;
+
+    // Confirm this URL matches your Laravel create-designation route.
+    const response = await api.post('/designation/save', { name });
+    const result = response?.data?.data;
+
+    if (!result || result.id == null || !result.name) {
+      toast.error(response?.data?.message || 'The server did not return the created designation.');
+      return;
+    }
+
+    const alreadyAdded = designations.value.some(
+      (item) => String(item.id) === String(result.id),
+    );
+
+    if (!alreadyAdded) {
+      designations.value = [...designations.value, result];
+    }
+
+    careForm.serviceCategory = result.id;
+    validateCareField('serviceCategory');
+
+    newDesignation.value = '';
+    showAddDesignation.value = false;
+    toast.success(response?.data?.message || 'Service category added successfully.');
+  } catch (error) {
+    console.error('Add Designation Error:', error);
+
+    const responseData = error?.response?.data;
+    const validationMessage = Object.values(responseData?.errors || {}).flat()?.[0];
+
+    toast.error(
+      validationMessage ||
+      responseData?.message ||
+      'Unable to add service category.',
+    );
+  } finally {
+    savingDesignation.value = false;
+  }
+};
 const onPage = (event) => {
   first.value = event.first;
   lazyParams.value = {
@@ -1107,10 +1188,21 @@ const formatDate = (date) => {
     hour12: true,
   });
 };
+const designationOptions = computed(() => {
+  const items = Array.isArray(designations.value) ? designations.value : [];
+
+  return items
+    .filter((item) => item && item.id != null && item.name)
+    .map((item) => ({
+      label: item.name,
+      value: item.id,
+    }));
+});
 onMounted(() => {
   breadcrumbs.value = ['Patient', 'Enrolment'];
   getMasters();
   getPatients();
+  getDesignations();
 });
 </script>
 
@@ -1620,12 +1712,33 @@ onMounted(() => {
                       <div class="col-lg-3 col-md-6">
                         <div class="field-group">
                           <label class="pb-label">Service Category</label>
-                          <CFormSelect
-                            v-model="careForm.serviceCategory"
-                            :options="[{ label: 'Select service category', value: '' }, ...PATIENT_DROPDOWNS.serviceCategory]"
-                            :class="{ 'is-invalid': isCareInvalid('serviceCategory') }"
-                            @update:modelValue="validateCareField('serviceCategory')" />
-                          <CFormFeedback invalid>{{ careErrors?.serviceCategory?.message }}</CFormFeedback>
+
+                          <div class="d-flex gap-2 align-items-start">
+                            <Select
+                              v-model="careForm.serviceCategory"
+                              :options="designationOptions"
+                              optionLabel="label"
+                              optionValue="value"
+                              placeholder="Select service category"
+                              class="w-100"
+                              :class="{ 'p-invalid': isCareInvalid('serviceCategory') }"
+                              filter
+                              showClear
+                              @change="validateCareField('serviceCategory')">
+                              <template #footer>
+                                <div class="select-add-footer">
+                                  <CButton color="primary" size="sm" class="w-100" @click="showAddDesignation = true">
+                                    <CIcon :icon="cilPlus" class="me-1" />
+                                    Add New Service Category
+                                  </CButton>
+                                </div>
+                              </template>
+                            </Select>
+                          </div>
+
+                          <small v-if="careErrors?.serviceCategory?.message" class="p-error">
+                            {{ careErrors.serviceCategory.message }}
+                          </small>
                         </div>
                       </div>
                       <div class="col-lg-3 col-md-6">
@@ -2364,6 +2477,45 @@ onMounted(() => {
       </div>
     </CCol>
   </CRow>
-</template>
+  <Dialog
+    v-model:visible="showAddDesignation"
+    modal
+    header="Add New Service Category"
+    :style="{ width: '420px', maxWidth: '95vw' }"
+    :closable="!savingDesignation"
+    :dismissableMask="!savingDesignation"
+  >
+    <div class="field-group">
+      <label class="pb-label" for="new-service-category">Service Category Name</label>
+      <InputText
+        id="new-service-category"
+        v-model="newDesignation"
+        class="w-100"
+        placeholder="Enter service category"
+        maxlength="255"
+        autofocus
+        @keyup.enter="addNewDesignation"
+      />
+    </div>
 
- 
+    <template #footer>
+      <CButton
+        color="secondary"
+        variant="outline"
+        :disabled="savingDesignation"
+        @click="showAddDesignation = false"
+      >
+        Cancel
+      </CButton>
+
+      <CButton
+        color="primary"
+        :disabled="savingDesignation || !newDesignation.trim()"
+        @click="addNewDesignation"
+      >
+        <CSpinner v-if="savingDesignation" size="sm" class="me-1" />
+        {{ savingDesignation ? 'Saving...' : 'Save Category' }}
+      </CButton>
+    </template>
+  </Dialog>
+</template>

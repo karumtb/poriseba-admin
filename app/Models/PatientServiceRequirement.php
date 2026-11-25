@@ -72,6 +72,14 @@ class PatientServiceRequirement extends Model
             'id'
         );
     }
+    public function service_category(): BelongsTo
+    {
+        return $this->belongsTo(
+            Designation::class,
+            'service_category',
+            'id'
+        );
+    }
 
     /**
      * Requirement can have multiple caregiver assignments.
