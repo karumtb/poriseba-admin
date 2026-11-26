@@ -1099,197 +1099,7 @@ const toogleStatus = async (id = null) => {
 };
 </script>
 <template>
-  <CRow class="patient-management-page">
-    <!-- ====================================================== -->
-    <!-- LISTING -->
-    <!-- ====================================================== -->
-
-    <CCol :lg="12" :md="12" :sm="12">
-      <CCard class="mb-4 onboarding-panel">
-        <CCardHeader class="pb-card-header">
-          <div class="pb-card-header-left">
-            <div class="pb-card-icon">
-              <CIcon :icon="cilPencil" />
-            </div>
-            <div class="pb-card-title">Manpower Lists</div>
-          </div>
-          <CButton color="primary" @click="addNew" v-if="authStore.user?.role != 'hospital'">
-            <CIcon :icon="cilPlus" class="me-1" />
-
-            Add New
-          </CButton>
-        </CCardHeader>
-
-        <CCardBody class="px-0 pb-0">
-          <CCard class="filter-card mb-4">
-            <CCardBody class="py-4">
-              <div class="row g-3 align-items-end">
-                <!-- Acknowledgement -->
-                <div class="col-lg-4 col-md-6">
-                  <input type="text" class="form-control" v-model.trim="filters.keyword" placeholder="Filter By Name,Phone No" size="lg" />
-                </div>
-
-                <!-- Registration Type -->
-                <div class="col-lg-2 col-md-6">
-                  <Select
-                    v-model="filters.status"
-                    :options="statusTypes"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="All"
-                    class="w-100" />
-                </div>
-                <div class="col-lg-2 col-md-6">
-                  <select class="form-control" v-model="filters.designation">
-                    <option :value="null">Designation</option>
-                    <!-- Loop starts here -->
-                    <option v-for="item in designations" :key="item.id" :value="item.id">
-                      {{ item.name }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Search -->
-                <div class="col-lg-2 col-md-6">
-                  <CButton color="primary" class="w-100 py-2" @click="searchFilters">
-                    <CIcon :icon="cilSearch" class="me-2" />
-                    Search
-                  </CButton>
-                </div>
-
-                <!-- Reset -->
-                <div class="col-lg-2 col-md-6">
-                  <CButton color="light" class="w-100 py-2 border" @click="resetFilters">
-                    <CIcon :icon="cilReload" class="me-2" />
-                    Reset
-                  </CButton>
-                </div>
-              </div>
-            </CCardBody>
-          </CCard>
-          <div class="card onboarding-panel p-3 mb-0">
-            <div class="bulk-approve-bar mb-3" v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'">
-              <div class="selected-info">
-                <span class="selected-count">
-                  {{ selectedEnrolments.length }}
-                </span>
-
-                <span class="selected-text"> records selected </span>
-              </div>
-
-              <CButton
-                color="success"
-                :disabled="selectedEnrolments.length === 0 || approving"
-                @click="bulkApprove()"
-                v-if="authStore.user.role == 'admin'">
-                <CSpinner v-if="approving" size="sm" class="me-2" />
-                <CIcon :icon="cilCheckCircle" class="me-2" v-else />
-                Bulk Approve
-              </CButton>
-              <CButton
-                color="success"
-                :disabled="selectedEnrolments.length === 0"
-                @click="bulkHire()"
-                v-if="authStore.user.role == 'hospital'"
-                style="color: white">
-                <CSpinner v-if="approving" size="sm" class="me-2" />
-                <CIcon :icon="cilCheckCircle" class="me-2" v-else />
-                Hiring Request
-              </CButton>
-            </div>
-            <DataTable
-              v-model:selection="selectedEnrolments"
-              :value="enrolments"
-              dataKey="id"
-              lazy
-              paginator
-              :first="lazyParams.first"
-              :rows="lazyParams.rows"
-              :totalRecords="totalRecords"
-              :loading="loading"
-              :rowsPerPageOptions="[10, 25, 50, 100]"
-              :rowClass="(data) => (data.hospital_id ? 'has-placement' : '')"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
-              currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
-              responsiveLayout="scroll"
-              @page="onPage">
-              <template #empty>
-                <div class="text-center py-4">No records found.</div>
-              </template>
-
-              <template #loading>
-                <div class="text-center py-4">Loading records...</div>
-              </template>
-              <!-- SELECT ALL / ROW CHECKBOX -->
-              <Column
-                selectionMode="multiple"
-                headerStyle="width: 3rem"
-                v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'" />
-              <Column header="#">
-                <template #body="{ index }">
-                  {{ lazyParams.first + index + 1 }}
-                </template>
-              </Column>
-              <Column header="Photo">
-                <template #body="{ data }">
-                  <img :src="data.profilePreviewUrl" class="profile-img" />
-                </template>
-              </Column>
-
-              <Column header="Name" field="name" />
-              <Column header="Vendor" v-if="authStore.user.role != 'hospital'">
-                <template #body="{ data }">
-                  {{ data?.vendor?.name }}
-                </template>
-              </Column>
-              <Column header="Address" field="address" v-if="authStore.user.role == 'hospital'" />
-
-              <Column header="Phone" field="phone" v-if="authStore.user.role != 'hospital'" />
-              <Column header="Qualification" field="highest_qualification" v-if="authStore.user.role == 'hospital'" />
-              <Column header="Status">
-                <template #body="{ data }">
-                  <CFormSwitch
-                    style="cursor: pointer"
-                    :id="`formSwitchCheckChecked${data.id}`"
-                    label=""
-                    :checked="data.status === 'A'"
-                    @click="toogleStatus(data.id)"
-                    v-if="authStore.user.role == 'admin'" />
-                  <Tag v-else :severity="data.status == 'A' ? 'success' : 'danger'" :value="data.status == 'A' ? 'Active' : 'Pending'" />
-                </template>
-              </Column>
-              <Column header="Designation" #body="{ data }">{{ data?.designation?.name }}</Column>
-              <Column header="Action">
-                <template #body="{ data }">
-                  <CButton
-                    color="warning"
-                    variant="outline"
-                    size="sm"
-                    class="me-2 mb-2"
-                    @click="releaseEnrolement(data.id)"
-                    v-if="data.hospital_id && authStore.user.role == 'admin'">
-                    <CIcon :icon="cilLockUnlocked" />
-                  </CButton>
-                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
-                    <CIcon :icon="cilLowVision" />
-                  </CButton>
-                  <template v-if="authStore.user.role != 'hospital'">
-                    <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
-                      <CIcon :icon="cilPencil" />
-                    </CButton>
-
-                    <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
-                      <CIcon :icon="cilTrash" />
-                    </CButton>
-                  </template>
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-        </CCardBody>
-      </CCard>
-    </CCol>
-
+  <CRow class="patient-management-page"> 
     <!-- ====================================================== -->
     <!-- FORM -->
     <!-- ====================================================== -->
@@ -2198,6 +2008,195 @@ const toogleStatus = async (id = null) => {
               </div>
             </div>
           </CForm>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <!-- ====================================================== -->
+    <!-- LISTING -->
+    <!-- ====================================================== -->
+
+    <CCol :lg="12" :md="12" :sm="12">
+      <CCard class="mb-4 onboarding-panel">
+        <CCardHeader class="pb-card-header">
+          <div class="pb-card-header-left">
+            <div class="pb-card-icon">
+              <CIcon :icon="cilPencil" />
+            </div>
+            <div class="pb-card-title">Manpower Lists</div>
+          </div>
+          <CButton color="primary" @click="addNew" v-if="authStore.user?.role != 'hospital'">
+            <CIcon :icon="cilPlus" class="me-1" />
+
+            Add New
+          </CButton>
+        </CCardHeader>
+
+        <CCardBody class="px-0 pb-0">
+          <CCard class="filter-card mb-4">
+            <CCardBody class="py-4">
+              <div class="row g-3 align-items-end">
+                <!-- Acknowledgement -->
+                <div class="col-lg-4 col-md-6">
+                  <input type="text" class="form-control" v-model.trim="filters.keyword" placeholder="Filter By Name,Phone No" size="lg" />
+                </div>
+
+                <!-- Registration Type -->
+                <div class="col-lg-2 col-md-6">
+                  <Select
+                    v-model="filters.status"
+                    :options="statusTypes"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="All"
+                    class="w-100" />
+                </div>
+                <div class="col-lg-2 col-md-6">
+                  <select class="form-control" v-model="filters.designation">
+                    <option :value="null">Designation</option>
+                    <!-- Loop starts here -->
+                    <option v-for="item in designations" :key="item.id" :value="item.id">
+                      {{ item.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Search -->
+                <div class="col-lg-2 col-md-6">
+                  <CButton color="primary" class="w-100 py-2" @click="searchFilters">
+                    <CIcon :icon="cilSearch" class="me-2" />
+                    Search
+                  </CButton>
+                </div>
+
+                <!-- Reset -->
+                <div class="col-lg-2 col-md-6">
+                  <CButton color="light" class="w-100 py-2 border" @click="resetFilters">
+                    <CIcon :icon="cilReload" class="me-2" />
+                    Reset
+                  </CButton>
+                </div>
+              </div>
+            </CCardBody>
+          </CCard>
+          <div class="card onboarding-panel p-3 mb-0">
+            <div class="bulk-approve-bar mb-3" v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'">
+              <div class="selected-info">
+                <span class="selected-count">
+                  {{ selectedEnrolments.length }}
+                </span>
+
+                <span class="selected-text"> records selected </span>
+              </div>
+
+              <CButton
+                color="success"
+                :disabled="selectedEnrolments.length === 0 || approving"
+                @click="bulkApprove()"
+                v-if="authStore.user.role == 'admin'">
+                <CSpinner v-if="approving" size="sm" class="me-2" />
+                <CIcon :icon="cilCheckCircle" class="me-2" v-else />
+                Bulk Approve
+              </CButton>
+              <CButton
+                color="success"
+                :disabled="selectedEnrolments.length === 0"
+                @click="bulkHire()"
+                v-if="authStore.user.role == 'hospital'"
+                style="color: white">
+                <CSpinner v-if="approving" size="sm" class="me-2" />
+                <CIcon :icon="cilCheckCircle" class="me-2" v-else />
+                Hiring Request
+              </CButton>
+            </div>
+            <DataTable
+              v-model:selection="selectedEnrolments"
+              :value="enrolments"
+              dataKey="id"
+              lazy
+              paginator
+              :first="lazyParams.first"
+              :rows="lazyParams.rows"
+              :totalRecords="totalRecords"
+              :loading="loading"
+              :rowsPerPageOptions="[10, 25, 50, 100]"
+              :rowClass="(data) => (data.hospital_id ? 'has-placement' : '')"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+              currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+              responsiveLayout="scroll"
+              @page="onPage">
+              <template #empty>
+                <div class="text-center py-4">No records found.</div>
+              </template>
+
+              <template #loading>
+                <div class="text-center py-4">Loading records...</div>
+              </template>
+              <!-- SELECT ALL / ROW CHECKBOX -->
+              <Column
+                selectionMode="multiple"
+                headerStyle="width: 3rem"
+                v-if="authStore.user.role == 'admin' || authStore.user.role == 'hospital'" />
+              <Column header="#">
+                <template #body="{ index }">
+                  {{ lazyParams.first + index + 1 }}
+                </template>
+              </Column>
+              <Column header="Photo">
+                <template #body="{ data }">
+                  <img :src="data.profilePreviewUrl" class="profile-img" />
+                </template>
+              </Column>
+
+              <Column header="Name" field="name" />
+              <Column header="Vendor" v-if="authStore.user.role != 'hospital'">
+                <template #body="{ data }">
+                  {{ data?.vendor?.name }}
+                </template>
+              </Column>
+              <Column header="Address" field="address" v-if="authStore.user.role == 'hospital'" />
+
+              <Column header="Phone" field="phone" v-if="authStore.user.role != 'hospital'" />
+              <Column header="Qualification" field="highest_qualification" v-if="authStore.user.role == 'hospital'" />
+              <Column header="Status">
+                <template #body="{ data }">
+                  <CFormSwitch
+                    style="cursor: pointer"
+                    :id="`formSwitchCheckChecked${data.id}`"
+                    label=""
+                    :checked="data.status === 'A'"
+                    @click="toogleStatus(data.id)"
+                    v-if="authStore.user.role == 'admin'" />
+                  <Tag v-else :severity="data.status == 'A' ? 'success' : 'danger'" :value="data.status == 'A' ? 'Active' : 'Pending'" />
+                </template>
+              </Column>
+              <Column header="Designation" #body="{ data }">{{ data?.designation?.name }}</Column>
+              <Column header="Action">
+                <template #body="{ data }">
+                  <CButton
+                    color="warning"
+                    variant="outline"
+                    size="sm"
+                    class="me-2 mb-2"
+                    @click="releaseEnrolement(data.id)"
+                    v-if="data.hospital_id && authStore.user.role == 'admin'">
+                    <CIcon :icon="cilLockUnlocked" />
+                  </CButton>
+                  <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="viewEnrolment(data.id)">
+                    <CIcon :icon="cilLowVision" />
+                  </CButton>
+                  <template v-if="authStore.user.role != 'hospital'">
+                    <CButton color="warning" variant="outline" size="sm" class="me-2 mb-2" @click="editEnrolment(data.id)">
+                      <CIcon :icon="cilPencil" />
+                    </CButton>
+
+                    <CButton color="danger" variant="outline" size="sm" class="me-2 mb-2" @click="deleteEnrolment(data.id)">
+                      <CIcon :icon="cilTrash" />
+                    </CButton>
+                  </template>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
         </CCardBody>
       </CCard>
     </CCol>

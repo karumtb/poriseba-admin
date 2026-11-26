@@ -1,9 +1,12 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import logo from '@/assets/images/logo.png'
+import logo from '@/assets/images/poriseba-logo-transparent.png'
 import { sygnet } from '@/assets/brand/sygnet'
 import { AppSidebarNav } from '@/components/AppSidebarNav.js'
 import { useSidebarStore } from '@/stores/sidebar.js'
+ 
+import { CIcon } from '@coreui/icons-vue'
+import { cilAccountLogout } from '@coreui/icons'
 
 const sidebar = useSidebarStore()
 </script>
@@ -26,9 +29,11 @@ const sidebar = useSidebarStore()
       <CCloseButton class="d-lg-none" dark @click="sidebar.toggleVisible()" />
     </CSidebarHeader>
     <AppSidebarNav />
-    <CSidebarFooter class="border-top d-none d-lg-flex">
-      Logout
-      <CSidebarToggler @click="sidebar.toggleUnfoldable()" />
+    <CSidebarFooter class="d-none d-lg-flex">
+      <a href="/" class="logout-link d-flex align-center">
+          <CIcon :icon="cilAccountLogout" class="logout-icon" /> Logout
+         <!-- <CSidebarToggler @click="sidebar.toggleUnfoldable()" /> -->
+      </a>
     </CSidebarFooter>
   </CSidebar>
 </template>

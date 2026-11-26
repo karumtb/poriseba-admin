@@ -591,8 +591,12 @@ body {
   border-color: #0f172a !important;
 }
 .sidebar-nav .nav-link {
-  color: #94a3b8 !important;
-  font-size: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #aab4c5!important;
+    padding: 12px 13px;
+    line-height: 1.1;
+    margin-bottom: 6px;
 }
 .sidebar-nav .nav-link:after {
   background: #ffffff !important;
@@ -610,7 +614,9 @@ div.border-bottom {
   border-bottom: 1px solid #e7e7e7 !important;
 }
 .header-logo {
-  background-color: #fff;
+  background-color: #111a30;
+  border-bottom: 1px solid #1e2c43;
+  margin-bottom: 10px;
 }
 .container-full {
   max-width: 100% !important;
@@ -792,12 +798,13 @@ div.border-bottom {
 /* next */
 
 .sidebar-header {
-  padding: 10px 22px;
+    padding: 20px 33px 20px;
 }
+.simplebar-content{padding: 15px !important;}
 .sidebar-brand-full {
-  height: 40px;
+  height: auto;
   margin: 0 auto;
-  width: 100%;
+  width: 90%;
   object-fit: contain;
 }
 .sidebar-nav .nav-icon {
@@ -805,11 +812,16 @@ div.border-bottom {
   width: 17px;
   height: auto;
   flex: none;
+  margin-right: 10px;
 }
 .sidebar-nav .active .nav-icon {
   color: #fff;
 }
-
+.chart-image{
+      width: 100%;
+    object-fit: contain;
+}
+.breadcrumb-item.active{color: #000;}
 /* =========================================================
    VIEW ENROLMENT
    ========================================================= */
@@ -1022,14 +1034,37 @@ RESPONSIVE
 .nav-link:hover .nav-icon {
   color: #ffffff !important;
 }
-
+.nav-link.active, .nav-link:hover, .sidebar-toggler{
+  color: #fff !important;
+}
+.sidebar-footer{ 
+    border-top: 1px solid #1e2c43;
+    padding: 0 33px !important;
+    background: #111a30;
+}
+.sidebar-footer .logout-link{
+  padding: 12px 0;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: #aab4c5!important;
+  text-decoration: none;
+}
+.sidebar-footer .logout-link:hover{
+  color: var(--pm-primary);
+}
+.logout-icon{
+    transform: rotate(180deg);
+    margin-right: 5px;
+}
 .sidebar-nav .nav-link:after {
   background: #fff !important;
 }
 .sidebar-nav .nav-link:hover:after {
   background: #fff !important;
 }
-
+ 
 .body.flex-grow-1 .card-body.pb-0.d-flex.justify-content-between.align-items-start {
   padding: 20px 25px !important;
 }
@@ -2005,13 +2040,13 @@ RESPONSIVE
 }
 /* D css */
 .sidebar-nav .nav-group-items {
-  padding: 4px 0 4px 32px !important;
+  padding: 4px 0 4px 22px !important;
 }
 .sidebar-nav .nav-group-items .nav-link {
   padding: 7px 12px !important;
   border-radius: 6px;
   color: #94a3b8 !important;
-  font-size: 12.5px;
+  font-size: 12px;
   text-decoration: none;
   transition: all 0.2s ease;
   cursor: pointer;
@@ -2170,6 +2205,7 @@ RESPONSIVE
 .mobile-brdcm {
   display: none;
 }
+.header.header-sticky{border: none;}
 .header.header-sticky,
 .main-header,
 .header-main {
